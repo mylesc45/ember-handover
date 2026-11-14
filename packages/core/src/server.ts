@@ -34,7 +34,15 @@ export interface CoreServerOptions {
   /** Headless re-measure for states and breakpoints. */
   measure?: (req: MeasureRequest) => Promise<unknown>;
   browser?: () => Promise<unknown>;
+  /** Flows list, headless replay and step screenshots. */
+  flows?: {
+    list(): Promise<unknown>;
+    replay(id: string, state: string | null): Promise<unknown>;
+    shot(id: string, state: string | null, step: number): Promise<Buffer | null>;
+  };
 }
+
+const FLOW_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
 
 export const MAX_BODY_BYTES = 16 * 1024;
 
@@ -117,8 +125,8 @@ export function createCoreServer(opts: CoreServerOptions): http.Server {
       if (req.method !== "GET" && req.method !== "HEAD") {
         if (req.method !== "POST") return fail(405, "METHOD_NOT_ALLOWED");
         if (!/^application\/json\b/i.test(String(req.headers["content-type"] ?? ""))) return fail(415, "UNSUPPORTED_MEDIA_TYPE");
-        if (url.pathname !== "/api/measure" || !opts.measure) return fail(404, "NOT_FOUND");
-        const measure = opts.measure;
+        const route = url.pathname;
+        if (!(route === "/api/measure" && opts.measure) && !(route === "/api/flows/replay" && opts.flows)) return fail(404, "NOT_FOUND");
         void readBody(req).then((raw) => {
           if (raw === "too-large") return fail(413, "BODY_TOO_LARGE");
           let body: unknown;
@@ -127,9 +135,16 @@ export function createCoreServer(opts: CoreServerOptions): http.Server {
           } catch {
             return fail(400, "BAD_MEASURE_REQUEST");
           }
+          if (route === "/api/flows/replay" && opts.flows) {
+            const b = body as { id?: unknown; state?: unknown } | null;
+            const keys = b && typeof b === "object" ? Object.keys(b) : [];
+            if (!b || keys.some((k) => k !== "id" && k !== "state") || typeof b.id !== "string" || !FLOW_ID.test(b.id)) return fail(400, "BAD_MEASURE_REQUEST");
+            if (b.state !== undefined && b.state !== null && (typeof b.state !== "string" || !FLOW_ID.test(b.state))) return fail(400, "BAD_MEASURE_REQUEST");
+            return handled(opts.flows.replay(b.id, (b.state as string | null | undefined) ?? null));
+          }
           const m = parseMeasureRequest(body, opts.appOrigins);
-          if (!m) return fail(400, "BAD_MEASURE_REQUEST");
-          return handled(measure(m));
+          if (!m || !opts.measure) return fail(400, "BAD_MEASURE_REQUEST");
+          return handled(opts.measure(m));
         }, () => fail(400, "BAD_MEASURE_REQUEST"));
         return;
       }
@@ -137,6 +152,19 @@ export function createCoreServer(opts: CoreServerOptions): http.Server {
       if (url.pathname === "/api/status") return json(opts.status());
       if (url.pathname === "/api/tokens" && opts.tokens) return void handled(opts.tokens());
       if (url.pathname === "/api/browser" && opts.browser) return void handled(opts.browser());
+      if (url.pathname === "/api/flows" && opts.flows) return void handled(opts.flows.list());
+      if (url.pathname === "/api/flows/shot" && opts.flows) {
+        const id = url.searchParams.get("flow") ?? "";
+        const state = url.searchParams.get("state") || null;
+        const step = Number(url.searchParams.get("step"));
+        if (!FLOW_ID.test(id) || (state !== null && !FLOW_ID.test(state)) || !Number.isInteger(step) || step < 1 || step > 200) return fail(400, "BAD_MEASURE_REQUEST");
+        void opts.flows.shot(id, state, step).then((png) => {
+          if (!png) return fail(404, "NOT_FOUND");
+          res.writeHead(200, { "content-type": "image/png", ...SECURITY_HEADERS });
+          res.end(png);
+        });
+        return;
+      }
       return fail(404, "NOT_FOUND");
     }
 
@@ -155,7 +183,7 @@ export function createCoreServer(opts: CoreServerOptions): http.Server {
           "style-src 'self'",
           "font-src 'self'",
           "connect-src 'self'",
-          "img-src 'self' data:",
+          "img-src 'self' data: blob:",
           "base-uri 'none'",
           "form-action 'none'",
           `frame-ancestors ${frameAncestors}`,

@@ -18,6 +18,8 @@ import { loadTokens } from "@ember-handover/tokens/node";
 import type { TokenSet } from "@ember-handover/tokens";
 import { openBrowser } from "./browser.js";
 import { detect } from "./detect.js";
+import { maybeOfferAgentSetup } from "./first-run.js";
+import { createFlowsService } from "./flows-service.js";
 import { Supervisor } from "./supervisor.js";
 import type { Io } from "./main.js";
 
@@ -75,6 +77,9 @@ export async function start(opts: StartOptions): Promise<number> {
     const measurer = createMeasurer({ measureScript: readFileSync(join(dir, "measure.js"), "utf8") });
     cleanups.push(() => measurer.close());
     const tokens = cachedTokens(opts.cwd);
+    let proxyUrl = "";
+    const flows = createFlowsService(opts.cwd, () => proxyUrl);
+    cleanups.push(() => flows.close());
 
     // Reserve the proxy port first: the overlay needs to know which origins may frame it.
     const proxy = await listenLoopback(() => http.createServer(), PROXY_PORT);
@@ -94,6 +99,8 @@ export async function start(opts: StartOptions): Promise<number> {
           // Headless pages load the app through the proxy, exactly like the dev's browser.
           measure: (req) => measurer.measure(req),
           browser: () => measurer.browser(),
+          // Replays run through the proxy, so they see exactly what the dev's browser sees.
+          flows: { list: () => flows.list(), replay: (id, state) => flows.replay(id, state), shot: (id, state, step) => flows.shot(id, state, step) },
         }),
       proxy.port === CORE_PORT ? CORE_PORT + 1 : CORE_PORT,
     );
@@ -102,8 +109,10 @@ export async function start(opts: StartOptions): Promise<number> {
     for (const s of proxy.servers) attachProxy(s, { target, bridgeCode, overlayUrl });
 
     const url = `http://localhost:${proxy.port}`;
+    proxyUrl = url;
     io.stdout(`\nHandoff is running: ${url}  (your app: ${appUrl})\nPress D in the page for Dev Mode. Ctrl+C to stop.\n\n`);
     void openBrowser(url);
+    await maybeOfferAgentSetup(opts.cwd, io);
 
     await (opts.untilStopped ?? waitForSignal());
     io.stdout("\nStopping Handoff…\n");

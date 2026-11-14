@@ -1,0 +1,57 @@
+{
+  "flowId": "checkout",
+  "state": null,
+  "status": "passing",
+  "steps": [
+    {
+      "index": 0,
+      "ok": true,
+      "description": "Go to /pricing",
+      "screenshot": "1.png",
+      "url": "http://localhost:53417/pricing",
+      "ms": 62
+    },
+    {
+      "index": 1,
+      "ok": true,
+      "description": "Click test ID \"plan-pro\"",
+      "screenshot": "2.png",
+      "url": "http://localhost:53417/pricing",
+      "ms": 74
+    },
+    {
+      "index": 2,
+      "ok": true,
+      "description": "Type \"test@example.com\" into test ID \"email\"",
+      "screenshot": "3.png",
+      "url": "http://localhost:53417/pricing",
+      "ms": 42
+    },
+    {
+      "index": 3,
+      "ok": true,
+      "description": "Choose \"yearly\" in label \"Billing\"",
+      "screenshot": "4.png",
+      "url": "http://localhost:53417/pricing",
+      "ms": 34
+    },
+    {
+      "index": 4,
+      "ok": true,
+      "description": "Click button \"Continue\"",
+      "screenshot": "5.png",
+      "url": "http://localhost:53417/pricing",
+      "ms": 68
+    },
+    {
+      "index": 5,
+      "ok": true,
+      "description": "Expect text \"Payment\"",
+      "screenshot": "6.png",
+      "url": "http://localhost:53417/pricing",
+      "ms": 34
+    }
+  ],
+  "at": "2026-11-14T15:55:13.591Z",
+  "hash": "b084b255e18c8145"
+}

@@ -38,7 +38,7 @@ describe("handoff CLI (M0 shell)", () => {
   });
 
   it("not-yet-built commands explain instead of crashing", () => {
-    for (const c of ["review", "share", "check", "mcp", "doctor", "remove"]) {
+    for (const c of ["review", "share", "mcp", "doctor"]) {
       const r = run(c);
       expect(r.code, c).toBe(1);
       expect(r.err, c).toMatch(/Fix:/);

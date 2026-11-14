@@ -1,5 +1,7 @@
 import { parseArgs } from "node:util";
 import { explain, HandoffError, isHandoffError, type Explanation } from "@ember-handover/core";
+import { runCheck } from "./check.js";
+import { runRemove } from "./remove.js";
 import { start } from "./start.js";
 
 declare const __HANDOFF_VERSION__: string;
@@ -8,6 +10,8 @@ const VERSION = typeof __HANDOFF_VERSION__ === "string" ? __HANDOFF_VERSION__ : 
 export interface Io {
   stdout: (s: string) => void;
   stderr: (s: string) => void;
+  /** Ask a yes/no question; absent when there's no terminal to ask in. */
+  ask?: (question: string) => Promise<string>;
 }
 
 const COMMANDS = {
@@ -39,6 +43,7 @@ Options
   --allow-scripts   Allow install scripts during review (asks first)
   --precise         Use the dev-only build plugin for exact source links
   --json            Machine-readable output
+  --yes             Don't ask before removing (for scripts)
   -h, --help        Show this help
   -v, --version     Show the version
 `;
@@ -60,6 +65,7 @@ export async function main(argv: string[], io: Io): Promise<number> {
         sandbox: { type: "boolean" },
         "allow-scripts": { type: "boolean" },
         precise: { type: "boolean" },
+        yes: { type: "boolean", short: "y" },
       },
     });
 
@@ -79,7 +85,7 @@ export async function main(argv: string[], io: Io): Promise<number> {
       port = Number(values.port);
       if (!/^\d{1,5}$/.test(values.port) || port < 1 || port > 65535) throw new UsageError("BAD_PORT", { port: values.port });
     }
-    return await run(name as Command, { port, io });
+    return await run(name as Command, { port, io, json, yes: values.yes === true });
   } catch (err) {
     return report(err, io, json);
   }
@@ -87,8 +93,11 @@ export async function main(argv: string[], io: Io): Promise<number> {
 
 class UsageError extends HandoffError {}
 
-async function run(command: Command, ctx: { port: number | null; io: Io }): Promise<number> {
-  if (command === "start") return start({ cwd: process.cwd(), port: ctx.port, version: VERSION, io: ctx.io });
+async function run(command: Command, ctx: { port: number | null; io: Io; json: boolean; yes: boolean }): Promise<number> {
+  const cwd = process.cwd();
+  if (command === "start") return start({ cwd, port: ctx.port, version: VERSION, io: ctx.io });
+  if (command === "check") return runCheck({ cwd, io: ctx.io, json: ctx.json, port: ctx.port });
+  if (command === "remove") return runRemove({ cwd, io: ctx.io, yes: ctx.yes });
   // Later milestones replace these stubs one at a time.
   throw new HandoffError("NOT_IMPLEMENTED", { command });
 }

@@ -5,9 +5,13 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./explain": "./src/explain.ts"
+    "./explain": "./src/explain.ts",
+    "./flow-model": "./src/flow-model.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "yaml": "^2.9.1"
   }
 }

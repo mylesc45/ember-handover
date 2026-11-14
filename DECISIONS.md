@@ -58,3 +58,22 @@ Decisions on points SPEC.md leaves open or ambiguous. Newest last.
 | D35 | **Width switcher lives in the Inspect panel (with States), not the toolbar**, showing Live · 375 · nearest-to-768 · nearest-to-1280. | At 360 px the toolbar can't fit tabs, widths and close; widths only apply to Inspect anyway. Search and dock controls will need the same treatment. |
 | D36 | **Source row and Notes are not shown yet** (M3 and later). | Showing an unconfirmed source link would break "never confidently wrong". |
 | D37 | **Bridge is ~12 KB minified** (SPEC estimated ~8 KB). | Measurement, accessible-name and role logic, and the highlight. Worth trimming later; correctness first. |
+
+## 2026-11-14 · M4 (built before M3, at the maintainer's request)
+
+| # | Decision | Why |
+|---|---|---|
+| D38 | **M4 is built before M3**, on a branch stacked on M2. | Maintainer's call. M4 doesn't depend on click-to-source; `check` reports unresolved steps without needing source links. |
+| D39 | **Flows Live mode only navigates the user's tab** (new bridge command `navigate`, same-origin paths only). Clicks and typing are replayed headlessly, with a screenshot per step. | Keeps S4 intact: the bridge never clicks, types or writes the app's DOM. Chosen by the maintainer. |
+| D40 | **Fixtures are same-origin network mocks**: `{"routes":[{"url":"/api/pay","method":"POST","status":402,"json":{…}}]}`, applied from step `at` (1-based) onward during headless replay. Strict schema, ≤1 MB, ≤100 routes, only `content-type` may be set, URLs must be same-origin paths (trailing `*` = prefix). | SPEC names fixtures but doesn't define them. Chosen by the maintainer. |
+| D41 | **The MCP entry is written at first run** (`npx -y ember-handover mcp`) even though the server ships in M6. | Matches SPEC's first-run list; avoids a fourth write later. Chosen by the maintainer. |
+| D42 | **The AGENTS.md block runs `npx ember-handover check`**, not `npx handoff check`. | `handoff` on npm is someone else's package: telling agents to `npx` it would run third-party code. Otherwise the block is SPEC's text verbatim. |
+| D43 | **`wait` is seconds** (`wait: 2`), or a unit (`500ms`, `1.5s`); max 10 s. | Matches SPEC's "max 10 s"; designers and agents think in seconds. |
+| D44 | **First run asks one question, in a terminal only**, after printing the exact diff it would apply. A "no" is remembered per repo in `~/.ember-handover/state.json` (outside the repo). No terminal (CI, piped) → never asks, never writes. | "Shows a diff before writing" with a single question; never nags; never writes without a person saying yes. |
+| D45 | **`.handoff/cache/` is ignored via `.handoff/.gitignore`**, not the repo's root `.gitignore`. | Keeps every write inside the three allowed places. |
+| D46 | **`remove` restores byte-for-byte** using an install record in `.handoff/cache/install.json` when files are unchanged since setup; otherwise it removes only the marked block / the `handoff` MCP key. It asks first (it deletes `.handoff/`), or takes `--yes` in scripts. | S14 "clean git status", without clobbering edits made after setup. `--yes` is the one new flag. |
+| D47 | **JSON MCP configs are re-serialised with their detected indent** when the entry is added. | A textual JSON patcher would be fragile; `remove` restores the original bytes from the install record. |
+| D48 | **`check` replays the default state of every flow**, not fixture states, and starts (or attaches to) the dev server itself. | States often intentionally change outcomes (a declined card shouldn't reach "Payment"); the default path is what must keep working. |
+| D49 | **Routes are detected from files, never by running app code**: Next (App/Pages), SvelteKit, Nuxt, Astro file routes; React/Vue/Solid router `path` strings read as text; otherwise `/`. Dynamic routes can't get a drafted flow and are listed as comments for the agent. | Read-only detection; `check` still fails until a flow with an example URL covers them (SPEC: "fails if a route has no flow"). |
+| D50 | **F, C and I switch panel modes from the page too** (forwarded by the bridge, never prevented). | SPEC's keyboard shortcuts must work wherever focus is; not preventing them keeps the app's own shortcuts working. |
+| D51 | **The secret scanner** uses gitleaks-style rules (cloud keys, tokens, private keys, JWTs, credentials in URLs, hard-coded credential assignments) and reports rule + line, never the value. | S9/`check`; echoing a secret into CI logs would leak it. |

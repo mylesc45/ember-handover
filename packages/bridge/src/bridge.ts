@@ -141,6 +141,10 @@ function mount(url: URL) {
     else if (cmd.type === "layout") frame.setAttribute("style", LAYOUTS[cmd.mode]);
     else if (cmd.type === "inspect") setInspect(cmd.on);
     else if (cmd.type === "select") select(cmd);
+    else if (cmd.type === "navigate") {
+      const target = new URL(cmd.path, location.origin);
+      if (target.origin === location.origin && target.href !== location.href) location.assign(target.href);
+    }
   });
 
   addEventListener(
@@ -153,7 +157,12 @@ function mount(url: URL) {
         select({ v: 1, type: "select", to: e.key === "ArrowUp" ? "parent" : "child" });
         return;
       }
-      if (e.key === "d" || e.key === "D") send({ v: 1, type: "key", key: "toggle" });
+      const k = e.key.toLowerCase();
+      // Forwarded only; never prevented, so the app's own shortcuts keep working.
+      if (k === "d") send({ v: 1, type: "key", key: "toggle" });
+      else if (k === "f") send({ v: 1, type: "key", key: "flows" });
+      else if (k === "c") send({ v: 1, type: "key", key: "changes" });
+      else if (k === "i") send({ v: 1, type: "key", key: "inspect" });
       else if (e.key === "Escape") {
         if (inspecting && pinned) pin(null);
         else send({ v: 1, type: "key", key: "escape" });

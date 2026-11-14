@@ -151,6 +151,7 @@ describe("S4 hostile page cannot reach the token or drive the bridge", () => {
       for (const t of ["*", location.origin]) {
         window.postMessage({ v: 1, type: "inspect", on: true }, t);
         window.postMessage({ v: 1, type: "select", to: "parent" }, t);
+        window.postMessage({ v: 1, type: "navigate", path: "/hijacked" }, t);
       }
     });
     let clicks = 0;
@@ -160,6 +161,7 @@ describe("S4 hostile page cannot reach the token or drive the bridge", () => {
     await page.waitForTimeout(300);
     expect(await frame.evaluate(() => (window as unknown as { __forged: number }).__forged)).toBe(0);
     expect(clicks).toBe(1); // the app's own click handler still ran: inspect mode is off
+    expect(new URL(page.url()).pathname).toBe("/"); // forged navigate ignored
   });
 
   it("text the page sends the overlay renders as plain text", async () => {

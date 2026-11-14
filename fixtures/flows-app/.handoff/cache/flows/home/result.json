@@ -1,0 +1,33 @@
+{
+  "flowId": "home",
+  "state": null,
+  "status": "passing",
+  "steps": [
+    {
+      "index": 0,
+      "ok": true,
+      "description": "Go to /",
+      "screenshot": "1.png",
+      "url": "http://localhost:53417/",
+      "ms": 47
+    },
+    {
+      "index": 1,
+      "ok": true,
+      "description": "Click text \"See pricing\"",
+      "screenshot": "2.png",
+      "url": "http://localhost:53417/pricing",
+      "ms": 116
+    },
+    {
+      "index": 2,
+      "ok": true,
+      "description": "Expect the URL /pricing",
+      "screenshot": "3.png",
+      "url": "http://localhost:53417/pricing",
+      "ms": 33
+    }
+  ],
+  "at": "2026-11-14T15:55:13.870Z",
+  "hash": "de2146516703f404"
+}

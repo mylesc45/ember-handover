@@ -1,0 +1,60 @@
+{
+  "flowId": "checkout",
+  "state": "card-declined",
+  "status": "failing",
+  "failedAt": 5,
+  "steps": [
+    {
+      "index": 0,
+      "ok": true,
+      "description": "Go to /pricing",
+      "screenshot": "1.png",
+      "url": "http://localhost:53417/pricing",
+      "ms": 62
+    },
+    {
+      "index": 1,
+      "ok": true,
+      "description": "Click test ID \"plan-pro\"",
+      "screenshot": "2.png",
+      "url": "http://localhost:53417/pricing",
+      "ms": 74
+    },
+    {
+      "index": 2,
+      "ok": true,
+      "description": "Type \"test@example.com\" into test ID \"email\"",
+      "screenshot": "3.png",
+      "url": "http://localhost:53417/pricing",
+      "ms": 26
+    },
+    {
+      "index": 3,
+      "ok": true,
+      "description": "Choose \"yearly\" in label \"Billing\"",
+      "screenshot": "4.png",
+      "url": "http://localhost:53417/pricing",
+      "ms": 17
+    },
+    {
+      "index": 4,
+      "ok": true,
+      "description": "Click button \"Continue\"",
+      "screenshot": "5.png",
+      "url": "http://localhost:53417/pricing",
+      "ms": 50
+    },
+    {
+      "index": 5,
+      "ok": false,
+      "description": "Expect text \"Payment\"",
+      "error": "Expected text \"Payment\", but it didn't appear.",
+      "actual": "Pricing Free Pro Email Plan Monthly Yearly Continue Card declined: insufficient funds",
+      "screenshot": "6.png",
+      "url": "http://localhost:53417/pricing",
+      "ms": 10034
+    }
+  ],
+  "at": "2026-11-14T15:55:29.769Z",
+  "hash": "b084b255e18c8145"
+}

@@ -9,6 +9,7 @@
   "devDependencies": {
     "@ember-handover/core": "workspace:*",
     "@ember-handover/proxy": "workspace:*",
-    "@ember-handover/tokens": "workspace:*"
+    "@ember-handover/tokens": "workspace:*",
+    "@ember-handover/capture": "workspace:*"
   }
 }

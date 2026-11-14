@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Checkout fixture</title>
+<style>body{font-family:system-ui;margin:24px} [hidden]{display:none!important} .plan{border:1px solid #ccc;padding:12px;margin:4px;display:inline-block;cursor:pointer}</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+  // A tiny SPA: /pricing → pick plan → email → Continue → POST /api/pay → Payment or error.
+  const app = document.getElementById("app");
+  const render = () => {
+    const path = location.pathname;
+    if (path === "/pricing") {
+      app.innerHTML = `<h1>Pricing</h1>
+        <div class="plan" data-testid="plan-free">Free</div>
+        <div class="plan" data-testid="plan-pro">Pro</div>
+        <form id="f" hidden><label>Email <input data-testid="email" type="email"></label>
+        <label>Plan <select aria-label="Billing"><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></label>
+        <button type="submit">Continue</button></form>
+        <p id="out" role="status"></p>`;
+      document.querySelector('[data-testid="plan-pro"]').onclick = () => (document.getElementById("f").hidden = false);
+      document.getElementById("f").onsubmit = async (e) => {
+        e.preventDefault();
+        const r = await fetch("/api/pay", { method: "POST", body: JSON.stringify({ email: document.querySelector('[data-testid="email"]').value }) });
+        const body = await r.json();
+        document.getElementById("out").textContent = r.ok ? "Payment" : `Card declined: ${body.error}`;
+      };
+    } else {
+      app.innerHTML = `<h1>Home</h1><a href="/pricing">See pricing</a>`;
+    }
+  };
+  addEventListener("popstate", render);
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest("a");
+    if (a && a.origin === location.origin) { e.preventDefault(); history.pushState({}, "", a.pathname); render(); }
+  });
+  render();
+</script>
+</body>
+</html>

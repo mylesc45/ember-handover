@@ -16,7 +16,7 @@ export default defineConfig({
   sourcemap: false,
   splitting: false,
   noExternal: [/^@ember-handover\//],
-  external: ["execa", "playwright-core"],
+  external: ["execa", "playwright-core", "yaml"],
   define: { __HANDOFF_VERSION__: JSON.stringify(version) },
   banner: { js: "#!/usr/bin/env node" },
   onSuccess: async () => {

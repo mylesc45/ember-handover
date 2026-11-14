@@ -29,7 +29,7 @@ beforeAll(() => {
   pkgDir = join(work, "package");
   // Stand-in for `npm install`: link the one runtime dependency, offline.
   mkdirSync(join(pkgDir, "node_modules"));
-  for (const dep of ["execa", "playwright-core"]) {
+  for (const dep of ["execa", "playwright-core", "yaml"]) {
     symlinkSync(realpathSync(join(cliDir, "node_modules", dep)), join(pkgDir, "node_modules", dep), "junction");
   }
 }, 60_000);
@@ -45,10 +45,10 @@ describe("published tarball", () => {
     expect(pkg.publishConfig).toMatchObject({ provenance: true, access: "public", tag: "next" });
   });
 
-  it("has no install-time scripts; execa and playwright-core are the only runtime dependencies", () => {
+  it("has no install-time scripts; only execa, playwright-core and yaml at runtime", () => {
     const pkg = JSON.parse(readFileSync(join(pkgDir, "package.json"), "utf8")) as Record<string, Record<string, string> | undefined>;
     for (const s of ["preinstall", "install", "postinstall", "prepare"]) expect(pkg.scripts?.[s]).toBeUndefined();
-    expect(Object.keys(pkg.dependencies ?? {}).sort()).toEqual(["execa", "playwright-core"]);
+    expect(Object.keys(pkg.dependencies ?? {}).sort()).toEqual(["execa", "playwright-core", "yaml"]);
     expect(JSON.stringify(pkg)).not.toContain("workspace:");
   });
 
