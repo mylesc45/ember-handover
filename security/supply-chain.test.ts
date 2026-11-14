@@ -1,5 +1,5 @@
 // SPEC → Security model → Supply chain.
-import { createRequire } from "node:module";
+import { existsSync, realpathSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { packagesDir, readJson, rel, workspacePackageDirs } from "./lib/repo.js";
@@ -7,6 +7,15 @@ import { packagesDir, readJson, rel, workspacePackageDirs } from "./lib/repo.js"
 const INSTALL_HOOKS = ["preinstall", "install", "postinstall", "prepublish", "prepare"];
 
 type Pkg = { name: string; scripts?: Record<string, string>; dependencies?: Record<string, string> };
+
+/** Node-style lookup of node_modules/<name>/package.json, ignoring "exports". */
+function findPackageJson(fromDir: string, name: string): string {
+  for (let dir = fromDir; ; dir = dirname(dir)) {
+    const candidate = join(dir, "node_modules", name, "package.json");
+    if (existsSync(candidate)) return realpathSync(candidate);
+    if (dirname(dir) === dir) throw new Error(`cannot resolve ${name} from ${fromDir}`);
+  }
+}
 
 describe("supply chain", () => {
   it("no Handoff package defines install or postinstall scripts", () => {
@@ -23,8 +32,7 @@ describe("supply chain", () => {
     const seen = new Set<string>();
     const visit = (fromDir: string, deps: Record<string, string> | undefined) => {
       for (const name of Object.keys(deps ?? {})) {
-        const req = createRequire(join(fromDir, "package.json"));
-        const pkgPath = req.resolve(`${name}/package.json`);
+        const pkgPath = findPackageJson(fromDir, name);
         const pkg = readJson<Pkg & { version: string }>(pkgPath);
         const key = `${pkg.name}@${pkg.version}`;
         if (seen.has(key)) continue;

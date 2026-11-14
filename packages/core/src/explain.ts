@@ -38,6 +38,62 @@ const catalog = {
     message: (d) => `Handoff needs Node 22.13 or newer, but this is Node ${v(d.version)}.`,
     fix: () => "Install Node 22 or later from nodejs.org, or switch with your version manager (for example `nvm use 22`).",
   },
+  NO_PACKAGE_JSON: {
+    message: () => "There's no package.json in this folder, so Handoff can't find your app.",
+    fix: () => "Run Handoff from your app's root folder (the one with package.json).",
+  },
+  BAD_PACKAGE_JSON: {
+    message: () => "Your package.json couldn't be read because it isn't valid JSON.",
+    fix: () => "Fix the syntax error in package.json (your editor will highlight it), then run Handoff again.",
+  },
+  NO_DEV_SCRIPT: {
+    message: () => "Your package.json has no dev, start or serve script, so Handoff doesn't know how to start your app.",
+    fix: () => "Start your dev server yourself, then run `npx ember-handover --port <its port>`.",
+  },
+  BAD_PORT: {
+    message: (d) => `The port "${v(d.port)}" isn't a valid port number.`,
+    fix: () => "Pass a number between 1 and 65535, for example `--port 5173`.",
+  },
+  APP_START_TIMEOUT: {
+    message: (d) => `Your dev server didn't start listening on port ${v(d.port)} within ${v(d.seconds)} seconds.`,
+    fix: () => "Check the app's log above for errors. If it uses a different port, run `npx ember-handover --port <port>`.",
+  },
+  APP_EXITED: {
+    message: (d) => `Your dev server stopped before it was ready (exit code ${v(d.exitCode)}).`,
+    fix: () => "Read the last lines of its log above, fix the error, then run Handoff again.",
+  },
+  APP_UNREACHABLE: {
+    message: (d) => `Your app isn't responding on port ${v(d.port)} right now.`,
+    fix: () => "Handoff restarts it automatically if it crashed; this page retries every 2 seconds.",
+  },
+  NO_FREE_PORT: {
+    message: (d) => `Handoff couldn't find a free local port near ${v(d.port)}.`,
+    fix: () => "Close other dev servers you aren't using, then run Handoff again.",
+  },
+  FORBIDDEN_HOST: {
+    message: () => "This request didn't come from localhost, so Handoff refused it.",
+    fix: () => "Open Handoff at http://localhost on this machine; it can't be reached from other hosts.",
+  },
+  FORBIDDEN_ORIGIN: {
+    message: () => "A web page that isn't Handoff tried to use Handoff's local API, so it was blocked.",
+    fix: () => "Nothing to do; this protects you from malicious websites.",
+  },
+  BAD_TOKEN: {
+    message: () => "This Handoff session has ended or the request had no valid session token.",
+    fix: () => "Reload the page. If you restarted Handoff, use the new URL it printed.",
+  },
+  METHOD_NOT_ALLOWED: {
+    message: () => "Handoff's API only accepts GET for reads and POST for changes.",
+    fix: () => "Send the request as POST with a JSON body.",
+  },
+  UNSUPPORTED_MEDIA_TYPE: {
+    message: () => "Handoff's API only accepts JSON request bodies.",
+    fix: () => "Send the request with `Content-Type: application/json`.",
+  },
+  NOT_FOUND: {
+    message: () => "Handoff doesn't have anything at this address.",
+    fix: () => "Reload the page; if this keeps happening, run `npx ember-handover doctor`.",
+  },
 } satisfies Record<string, Entry>;
 
 export type ErrorCode = keyof typeof catalog;

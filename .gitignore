@@ -6,3 +6,5 @@ coverage/
 .handoff/cache/
 handoff-exports/
 .DS_Store
+.next/
+next-env.d.ts.bak

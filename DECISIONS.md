@@ -25,3 +25,19 @@ Decisions on points SPEC.md leaves open or ambiguous. Newest last.
 | # | Decision | Why |
 |---|---|---|
 | D14 | **One Node floor for users and contributors: 22.13+.** CI matrix is Node 22 and 24 on macOS, Ubuntu and Windows. SPEC.md and CLAUDE.md updated to match. Supersedes D13. | Node 20 reached end-of-life in April 2026, and pnpm 11, vitest 5 and tsup 9 need 22+. Chosen by the maintainer. |
+
+## 2026-11-14 · M1
+
+| # | Decision | Why |
+|---|---|---|
+| D15 | **Detector and supervisor live in `packages/cli`**, not their own packages. | They are CLI orchestration and used nowhere else; SPEC's repo layout has no package for them. |
+| D16 | **Proxy is built on `node:http`/`node:net` directly**, not `http-proxy-3` or `undici`. | SPEC offers either; the stdlib covers request streaming and raw websocket passthrough in ~200 lines, with zero dependencies (CLI budget). |
+| D17 | **Bridge is injected as `<script src="/__handoff/bridge.js" integrity="sha384-…" defer>`, and that same SRI hash is what's added to CSP.** | CSP3 hash sources match external scripts via their `integrity`. If a policy relies on `'unsafe-inline'` with no nonce/hash, we leave it untouched, because adding a hash would make browsers ignore `'unsafe-inline'` and break the app. `<meta>` CSP is not rewritten in v1. |
+| D18 | **The API token is in the overlay's HTML (`<meta>`), never in the page or on the postMessage channel.** The page can't read it: the overlay is cross-origin, sends `Cross-Origin-Resource-Policy: same-origin`, the API requires the token in a header, and Host/Origin checks defeat rebinding. | Any secret handed to the page would be visible to the app's own scripts, so none is. |
+| D19 | **Overlay treats every bridge event as untrusted data.** Events only change what is displayed (page title/URL, D/Esc). They are rendered as text and can never trigger an API call with page-chosen parameters. | A hostile script in the app page can forge anything the bridge can send; origin checks alone can't tell them apart. |
+| D20 | **The bridge speaks first** (on iframe load); the overlay queues commands until it learns the parent origin. | Avoids broadcasting to every loopback origin, which prints console errors in the user's app. |
+| D21 | **The framing allowlist is `http://localhost:<port>` and `http://127.0.0.1:<port>`; `[::1]` is excluded.** Servers still bind `::1`. | Chrome's CSP rejects IPv6 literals in `frame-ancestors`. Handoff always prints the localhost URL. |
+| D22 | **Ports: proxy 4000, core/overlay 4001, each moving up to the next free port.** `listenLoopback` tracks every socket, including upgraded websockets, so shutdown never hangs on an open HMR connection. | SPEC's defaults, plus a fallback so a busy port isn't fatal. |
+| D23 | **Dev server runs in its own process group (POSIX) / is killed with `taskkill /T` (Windows)** so Ctrl+C stops `pnpm run dev` *and* the server it spawns. | Otherwise the real dev server outlives Handoff and holds its port. |
+| D24 | **Fixture templates are committed as generated** (create-vite 9.3.4, create-next-app 16.4.6) with their lockfiles, each as its own pnpm root. CI installs them with `--ignore-scripts`. | Reproducible matrix inputs without network-dependent generation in CI. Tailwind/CSS Modules variants come with M2. |
+| D25 | **`pnpm test` = unit + security (includes Playwright for S4); `pnpm test:e2e` = real templates.** | e2e needs fixture installs and takes ~1 min; kept as a separate CI job. |

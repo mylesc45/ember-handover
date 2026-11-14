@@ -7,6 +7,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "devDependencies": {
-    "@ember-handover/core": "workspace:*"
+    "@ember-handover/core": "workspace:*",
+    "@ember-handover/proxy": "workspace:*"
   }
 }

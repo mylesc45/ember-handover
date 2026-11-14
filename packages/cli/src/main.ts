@@ -1,5 +1,6 @@
 import { parseArgs } from "node:util";
 import { explain, HandoffError, isHandoffError, type Explanation } from "@ember-handover/core";
+import { start } from "./start.js";
 
 declare const __HANDOFF_VERSION__: string;
 const VERSION = typeof __HANDOFF_VERSION__ === "string" ? __HANDOFF_VERSION__ : "0.0.0-dev";
@@ -73,7 +74,12 @@ export async function main(argv: string[], io: Io): Promise<number> {
 
     const name = positionals[0] ?? "start";
     if (!Object.hasOwn(COMMANDS, name)) throw new UsageError("UNKNOWN_COMMAND", { command: name });
-    return await run(name as Command);
+    let port: number | null = null;
+    if (typeof values.port === "string") {
+      port = Number(values.port);
+      if (!/^\d{1,5}$/.test(values.port) || port < 1 || port > 65535) throw new UsageError("BAD_PORT", { port: values.port });
+    }
+    return await run(name as Command, { port, io });
   } catch (err) {
     return report(err, io, json);
   }
@@ -81,8 +87,9 @@ export async function main(argv: string[], io: Io): Promise<number> {
 
 class UsageError extends HandoffError {}
 
-async function run(command: Command): Promise<number> {
-  // M0: every command is a stub. Later milestones replace these one at a time.
+async function run(command: Command, ctx: { port: number | null; io: Io }): Promise<number> {
+  if (command === "start") return start({ cwd: process.cwd(), port: ctx.port, version: VERSION, io: ctx.io });
+  // Later milestones replace these stubs one at a time.
   throw new HandoffError("NOT_IMPLEMENTED", { command });
 }
 

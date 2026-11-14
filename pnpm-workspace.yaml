@@ -1,9 +1,11 @@
 packages:
   - packages/*
   - security
+  - e2e
 
 # Supply-chain policy: no dependency may run install scripts.
 # esbuild ships its binary through optional platform packages, so its
 # postinstall check is not needed.
 allowBuilds:
+  '@parcel/watcher': false # tailwind CLI watch mode only; prebuilt binaries ship as optional deps
   esbuild: false

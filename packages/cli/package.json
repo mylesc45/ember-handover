@@ -23,7 +23,12 @@
   },
   "homepage": "https://github.com/mylesc45/ember-handover#readme",
   "bugs": "https://github.com/mylesc45/ember-handover/issues",
-  "keywords": ["design-handoff", "dev-mode", "inspect", "devtools"],
+  "keywords": [
+    "design-handoff",
+    "dev-mode",
+    "inspect",
+    "devtools"
+  ],
   "publishConfig": {
     "access": "public",
     "provenance": true,
@@ -34,6 +39,12 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "devDependencies": {
-    "@ember-handover/core": "workspace:*"
+    "@ember-handover/bridge": "workspace:*",
+    "@ember-handover/core": "workspace:*",
+    "@ember-handover/overlay": "workspace:*",
+    "@ember-handover/proxy": "workspace:*"
+  },
+  "dependencies": {
+    "execa": "^10.2.1"
   }
 }

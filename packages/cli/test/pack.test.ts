@@ -1,7 +1,7 @@
 // M0 "Done when": the empty CLI is publishable. This test packs the CLI exactly
 // as CI does before `npm publish --provenance`, then checks the tarball.
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -27,6 +27,9 @@ beforeAll(() => {
   const untar = spawnSync("tar", ["-xzf", tgz, "-C", work], { cwd: work, encoding: "utf8" });
   expect(untar.status, untar.stderr).toBe(0);
   pkgDir = join(work, "package");
+  // Stand-in for `npm install`: link the one runtime dependency, offline.
+  mkdirSync(join(pkgDir, "node_modules"));
+  symlinkSync(realpathSync(join(cliDir, "node_modules", "execa")), join(pkgDir, "node_modules", "execa"), "junction");
 }, 60_000);
 
 afterAll(() => rmSync(work, { recursive: true, force: true }));
@@ -40,17 +43,25 @@ describe("published tarball", () => {
     expect(pkg.publishConfig).toMatchObject({ provenance: true, access: "public", tag: "next" });
   });
 
-  it("has no install-time scripts and no runtime dependencies yet", () => {
+  it("has no install-time scripts; execa is the only runtime dependency", () => {
     const pkg = JSON.parse(readFileSync(join(pkgDir, "package.json"), "utf8")) as Record<string, Record<string, string> | undefined>;
     for (const s of ["preinstall", "install", "postinstall", "prepare"]) expect(pkg.scripts?.[s]).toBeUndefined();
-    expect(Object.keys(pkg.dependencies ?? {})).toEqual([]);
+    expect(Object.keys(pkg.dependencies ?? {})).toEqual(["execa"]);
     expect(JSON.stringify(pkg)).not.toContain("workspace:");
   });
 
   it("ships only dist, README and LICENSE", () => {
-    const top = readdirSync(pkgDir).sort();
+    const top = readdirSync(pkgDir).filter((f) => f !== "node_modules").sort();
     expect(top).toEqual(["LICENSE", "README.md", "dist", "package.json"]);
-    expect(readdirSync(join(pkgDir, "dist"))).toEqual(["bin.js"]);
+    expect(readdirSync(join(pkgDir, "dist")).sort()).toEqual(["assets", "bin.js"]);
+    expect(readdirSync(join(pkgDir, "dist", "assets")).sort()).toEqual(["bridge.js", "overlay"]);
+    expect(readdirSync(join(pkgDir, "dist", "assets", "overlay")).sort()).toEqual(["fonts", "overlay.css", "overlay.js"]);
+  });
+
+  it("ships no source maps and no Handoff code outside dist", () => {
+    const walk = (d: string): string[] =>
+      readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(join(d, e.name)) : [e.name]));
+    expect(walk(pkgDir).filter((f) => f.endsWith(".map"))).toEqual([]);
   });
 
   it("runs from the tarball", () => {
