@@ -1,6 +1,6 @@
 # Handoff (`ember-handover`)
 
-> Working name. Early development (M1): the proxy, bridge and an empty Dev Mode panel work on Vite and Next apps. Inspect, flows and review come next.
+> Working name. Early development (M2): Dev Mode's Inspect panel works on any app: exact specs measured in the browser, design tokens and drift (Tailwind v3/v4, CSS variables), states and breakpoints, copy as CSS, Tailwind, tokens or an agent prompt. Click-to-source, flows and review come next.
 
 Handoff adds a Figma-style Dev Mode on top of any web app's running dev server. One command starts it. Devs and their agents get exact specs, click-to-source links, end-to-end flows and a guided tour of what changed. It never edits your app, never ships to production and never sends code off your machine.
 
@@ -22,7 +22,7 @@ Requires Node 22.13+ and pnpm 11.
 ```bash
 pnpm install
 pnpm exec playwright install chromium   # once, for browser tests
-pnpm check       # lint, typecheck, build, unit + security tests
+pnpm check       # lint, typecheck, build, unit + security + accuracy tests (install fixtures/tokens first, see CI)
 pnpm test:e2e    # real Vite/Next templates (install fixtures first, see CI)
 ```
 
@@ -32,7 +32,11 @@ pnpm test:e2e    # real Vite/Next templates (install fixtures first, see CI)
 | `packages/core` | `explain(code)` error catalogue, local API + overlay server, loopback-only listening, Host/Origin/token guards. |
 | `packages/proxy` | Streams the app through `127.0.0.1:4000`, injects the bridge tag, adds its hash to CSP, passes websockets (HMR) through. |
 | `packages/bridge` | ~3 KB in-page script: closed shadow root, cross-origin overlay iframe, schema-checked postMessage. |
-| `packages/overlay` | Preact + Tailwind v4 iframe UI (pill and panel), fonts bundled locally. |
+| `packages/overlay` | Preact + Tailwind v4 iframe UI: pill, Inspect panel, copy formats. Fonts bundled locally. |
+| `packages/tokens` | Colour maths (CSS Color 4, CIEDE2000, WCAG), token loaders (Tailwind v4 `@theme`, v3 config, CSS variables), matching, drift, copy formats. |
+| `packages/capture` | Headless re-measure for states and breakpoints via the user's Chrome (`playwright-core`). |
+| `fixtures/seeded` | 50 seeded elements for the Layer 1 accuracy test. |
+| `fixtures/tokens` | Tailwind v3, Tailwind v4 and CSS-variable token fixtures. |
 | `fixtures/templates` | Generated Vite (React, Vue, Svelte, Solid) and Next (App, Pages) apps for e2e. |
 | `e2e/` | Runs Handoff against each template: overlay appears, HMR works. |
 | `security/` | One test file per control S1–S14, plus supply-chain checks. Controls not yet built are `todo` with their milestone. |

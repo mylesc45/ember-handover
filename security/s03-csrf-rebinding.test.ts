@@ -96,3 +96,53 @@ describe("S3 local API rejects cross-site and rebinding requests", () => {
     expect(csp).toContain("default-src 'none'");
   });
 });
+
+describe("S3 headless measure endpoint only targets the proxied app", () => {
+  const post = (body: unknown) =>
+    rawRequest(stack.corePort, {
+      method: "POST",
+      path: "/api/measure",
+      headers: { host: `127.0.0.1:${stack.corePort}`, "x-handoff-token": stack.token, "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  const PATH = "html:nth-child(1) > body:nth-child(2) > main:nth-child(1)";
+
+  it("accepts the app's own URL and a strict element path", async () => {
+    const r = await post({ url: `http://localhost:${stack.proxyPort}/pricing?x=1`, path: PATH, state: "hover", width: 768 });
+    expect(r.status, r.body.toString()).toBe(200);
+    expect(stack.measureCalls.at(-1)).toEqual({ url: `http://localhost:${stack.proxyPort}/pricing?x=1`, path: PATH, state: "hover", width: 768 });
+  });
+
+  it.each([
+    "http://evil.example/",
+    "https://localhost:1/",
+    `http://127.0.0.1:${1}/`,
+    "file:///etc/passwd",
+    "javascript:alert(1)",
+    `http://localhost:${0}@evil.example/`,
+  ])("rejects url %s (SSRF)", async (url) => {
+    const r = await post({ url, path: PATH });
+    expect(r.status).toBe(400);
+    expect(JSON.parse(r.body.toString()).error.code).toBe("BAD_MEASURE_REQUEST");
+  });
+
+  it.each([
+    "body",
+    "html:nth-child(1) > body:nth-child(2) > div",
+    'html:nth-child(1) > body:nth-child(2) > div[onclick="x"]:nth-child(1)',
+    "html:nth-child(1) > *:nth-child(1)",
+    "html:nth-child(1) , body:nth-child(2)",
+    "html:nth-child(1) > " + "div:nth-child(1) > ".repeat(300) + "div:nth-child(1)",
+  ])("rejects path %s", async (path) => {
+    expect((await post({ url: `http://localhost:${stack.proxyPort}/`, path })).status).toBe(400);
+  });
+
+  it.each([{ state: "visited" }, { width: 50 }, { width: 99999 }, { width: "768" }, { extra: true }])("rejects option %j", async (opt) => {
+    expect((await post({ url: `http://localhost:${stack.proxyPort}/`, path: PATH, ...opt })).status).toBe(400);
+  });
+
+  it("rejects bodies over 16 KB", async () => {
+    const r = await post({ url: `http://localhost:${stack.proxyPort}/`, path: PATH, pad: "x".repeat(20_000) });
+    expect(r.status).toBe(413);
+  });
+});

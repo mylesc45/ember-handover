@@ -9,3 +9,6 @@ packages:
 allowBuilds:
   '@parcel/watcher': false # tailwind CLI watch mode only; prebuilt binaries ship as optional deps
   esbuild: false
+
+minimumReleaseAgeExclude:
+  - playwright-core@1.65.1

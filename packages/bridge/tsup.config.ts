@@ -1,13 +1,18 @@
-import { defineConfig } from "tsup";
+import { defineConfig, type Options } from "tsup";
 
-export default defineConfig({
-  entry: { bridge: "src/bridge.ts" },
+const shared: Options = {
   format: ["iife"],
   platform: "browser",
   target: "es2020",
   outDir: "dist",
-  clean: true,
   minify: true,
   sourcemap: false,
   outExtension: () => ({ js: ".js" }),
-});
+};
+
+export default defineConfig([
+  // Injected into the app page by the proxy.
+  { ...shared, entry: { bridge: "src/bridge.ts" }, clean: true },
+  // Loaded only into Handoff's own headless pages (states, breakpoints).
+  { ...shared, entry: { measure: "src/measure-global.ts" }, clean: false },
+]);

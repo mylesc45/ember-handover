@@ -2,8 +2,9 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import http from "node:http";
 import { join } from "node:path";
-import { explain, type ErrorCode } from "./explain.js";
+import { explain, isHandoffError, type ErrorCode } from "./explain.js";
 import { isAllowedHost } from "./hosts.js";
+import { type MeasureRequest, parseMeasureRequest } from "./measure-request.js";
 
 export type AppState = "starting" | "running" | "attached" | "restarting" | "stopped";
 export interface AppStatus {
@@ -28,6 +29,30 @@ export interface CoreServerOptions {
   assets: OverlayAssets;
   session: () => SessionInfo;
   status: () => AppStatus;
+  /** Design tokens for the repo (opaque JSON for the overlay). */
+  tokens?: () => Promise<unknown>;
+  /** Headless re-measure for states and breakpoints. */
+  measure?: (req: MeasureRequest) => Promise<unknown>;
+  browser?: () => Promise<unknown>;
+}
+
+export const MAX_BODY_BYTES = 16 * 1024;
+
+function readBody(req: http.IncomingMessage): Promise<Buffer | "too-large"> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    let size = 0;
+    req.on("data", (c: Buffer) => {
+      size += c.length;
+      if (size > MAX_BODY_BYTES) {
+        // Stop buffering but keep draining, so the 413 response can still be delivered.
+        chunks.length = 0;
+        resolve("too-large");
+      } else chunks.push(c);
+    });
+    req.on("end", () => resolve(Buffer.concat(chunks)));
+    req.on("error", reject);
+  });
 }
 
 export const TOKEN_HEADER = "x-handoff-token";
@@ -82,17 +107,36 @@ export function createCoreServer(opts: CoreServerOptions): http.Server {
       if (origin !== undefined && origin !== selfOrigin) return fail(403, "FORBIDDEN_ORIGIN");
       if (!tokenMatches(req.headers[TOKEN_HEADER], opts.token)) return fail(401, "BAD_TOKEN");
 
-      if (req.method !== "GET" && req.method !== "HEAD") {
-        if (req.method !== "POST") return fail(405, "METHOD_NOT_ALLOWED");
-        if (!/^application\/json\b/i.test(String(req.headers["content-type"] ?? ""))) return fail(415, "UNSUPPORTED_MEDIA_TYPE");
-        return fail(404, "NOT_FOUND"); // no write endpoints yet
-      }
       const json = (body: unknown) => {
         res.writeHead(200, { "content-type": "application/json; charset=utf-8", ...SECURITY_HEADERS });
         res.end(JSON.stringify(body));
       };
+      const handled = (p: Promise<unknown>) =>
+        p.then(json, (e: unknown) => fail(isHandoffError(e) ? 422 : 500, isHandoffError(e) ? e.code : "UNKNOWN"));
+
+      if (req.method !== "GET" && req.method !== "HEAD") {
+        if (req.method !== "POST") return fail(405, "METHOD_NOT_ALLOWED");
+        if (!/^application\/json\b/i.test(String(req.headers["content-type"] ?? ""))) return fail(415, "UNSUPPORTED_MEDIA_TYPE");
+        if (url.pathname !== "/api/measure" || !opts.measure) return fail(404, "NOT_FOUND");
+        const measure = opts.measure;
+        void readBody(req).then((raw) => {
+          if (raw === "too-large") return fail(413, "BODY_TOO_LARGE");
+          let body: unknown;
+          try {
+            body = JSON.parse(raw.toString("utf8"));
+          } catch {
+            return fail(400, "BAD_MEASURE_REQUEST");
+          }
+          const m = parseMeasureRequest(body, opts.appOrigins);
+          if (!m) return fail(400, "BAD_MEASURE_REQUEST");
+          return handled(measure(m));
+        }, () => fail(400, "BAD_MEASURE_REQUEST"));
+        return;
+      }
       if (url.pathname === "/api/session") return json(opts.session());
       if (url.pathname === "/api/status") return json(opts.status());
+      if (url.pathname === "/api/tokens" && opts.tokens) return void handled(opts.tokens());
+      if (url.pathname === "/api/browser" && opts.browser) return void handled(opts.browser());
       return fail(404, "NOT_FOUND");
     }
 

@@ -11,6 +11,12 @@ export default defineConfig({
       unit("cli", "packages/cli", { testTimeout: 30_000 }),
       unit("proxy", "packages/proxy"),
       unit("bridge", "packages/bridge"),
+      unit("tokens", "packages/tokens", { testTimeout: 30_000 }),
+      unit("capture", "packages/capture", { testTimeout: 60_000 }),
+      {
+        // Layer 1 accuracy on fixtures/seeded (real browser, no fixture install needed).
+        test: { name: "accuracy", root: "e2e", include: ["accuracy.test.ts"], testTimeout: 120_000, hookTimeout: 120_000 },
+      },
       {
         test: {
           name: "security",
@@ -22,7 +28,7 @@ export default defineConfig({
       },
       {
         // Real templates in fixtures/templates; slow, run with `pnpm test:e2e`.
-        test: { name: "e2e", root: "e2e", include: ["**/*.test.ts"], fileParallelism: false, testTimeout: 120_000 },
+        test: { name: "e2e", root: "e2e", include: ["templates.test.ts"], fileParallelism: false, testTimeout: 120_000 },
       },
     ],
   },

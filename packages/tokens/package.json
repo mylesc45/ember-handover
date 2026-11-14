@@ -1,0 +1,20 @@
+{
+  "name": "@ember-handover/tokens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./node": "./src/node/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@ember-handover/bridge": "workspace:*",
+    "@ember-handover/core": "workspace:*"
+  },
+  "dependencies": {
+    "execa": "^10.2.1"
+  }
+}

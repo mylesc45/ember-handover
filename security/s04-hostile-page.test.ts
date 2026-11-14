@@ -8,12 +8,22 @@ const HOSTILE = `
   window.__baseline = new Set(Object.getOwnPropertyNames(window));
   window.__muts = [];
   window.__seen = [];
-  new MutationObserver((records) => {
+  // Record only script-made DOM changes. Parsing ends with readyState "interactive";
+  // deferred scripts (the bridge) run after that, so drop every record queued until then.
+  let recording = false;
+  const record = (records) => {
+    if (!recording) return;
     for (const r of records) {
-      if (document.readyState === "loading") continue; // parser work, not script work
       window.__muts.push({ type: r.type, target: r.target.nodeName, added: [...r.addedNodes].map((n) => n.nodeName), removed: r.removedNodes.length, attr: r.attributeName });
     }
-  }).observe(document, { subtree: true, childList: true, attributes: true, characterData: true });
+  };
+  const mo = new MutationObserver(record);
+  mo.observe(document, { subtree: true, childList: true, attributes: true, characterData: true });
+  document.addEventListener("readystatechange", () => {
+    if (document.readyState !== "interactive") return;
+    mo.takeRecords();
+    recording = true;
+  });
   addEventListener("message", (e) => window.__seen.push(JSON.stringify(e.data)), true);
 `;
 
@@ -86,7 +96,7 @@ describe("S4 hostile page cannot reach the token or drive the bridge", () => {
 
   it("bridge's only DOM write outside its shadow root is appending its host", async () => {
     const muts = await page.evaluate(() => (window as unknown as { __muts: unknown[] }).__muts);
-    expect(muts).toEqual([{ type: "childList", target: "BODY", added: ["HANDOFF-OVERLAY"], removed: 0, attr: null }]);
+    expect(muts, JSON.stringify(muts)).toEqual([{ type: "childList", target: "BODY", added: ["HANDOFF-OVERLAY"], removed: 0, attr: null }]);
   });
 
   it("page cannot read the session token by any route", async () => {
@@ -129,6 +139,29 @@ describe("S4 hostile page cannot reach the token or drive the bridge", () => {
     expect(await frameSize(frame)).toEqual(before);
   });
 
+  it("forged inspect commands from the page don't make the bridge measure or intercept clicks", async () => {
+    const frame = await overlayFrame();
+    await frame.evaluate(() => {
+      (window as unknown as { __forged: number }).__forged = 0;
+      addEventListener("message", (e) => {
+        if ((e.data as { type?: string })?.type === "spec") (window as unknown as { __forged: number }).__forged++;
+      });
+    });
+    await page.evaluate(() => {
+      for (const t of ["*", location.origin]) {
+        window.postMessage({ v: 1, type: "inspect", on: true }, t);
+        window.postMessage({ v: 1, type: "select", to: "parent" }, t);
+      }
+    });
+    let clicks = 0;
+    await page.exposeFunction("__countClick", () => clicks++);
+    await page.evaluate(() => document.getElementById("app")!.addEventListener("click", () => (window as unknown as { __countClick: () => void }).__countClick()));
+    await page.click("#app");
+    await page.waitForTimeout(300);
+    expect(await frame.evaluate(() => (window as unknown as { __forged: number }).__forged)).toBe(0);
+    expect(clicks).toBe(1); // the app's own click handler still ran: inspect mode is off
+  });
+
   it("text the page sends the overlay renders as plain text", async () => {
     const frame = await overlayFrame();
     await page.evaluate(() => {
@@ -143,24 +176,33 @@ describe("S4 hostile page cannot reach the token or drive the bridge", () => {
 
   it("D opens the panel and Esc closes it, with no DOM writes outside the shadow root", async () => {
     const frame = await overlayFrame();
-    await page.click("#app");
-    await page.keyboard.press("Escape");
+    await page.click("#app"); // in Inspect mode this pins #app
+    await page.keyboard.press("Escape"); // first Esc unpins…
+    await page.keyboard.press("Escape"); // …the next closes Dev Mode
     await frame.waitForSelector("[data-handoff-panel]", { state: "detached" });
     await page.keyboard.press("d");
     await frame.waitForSelector("[data-handoff-panel]");
-    expect((await frameSize(frame))[0]).toBe(360);
+    // The bridge resizes the iframe when the overlay's layout message arrives.
+    await frame.waitForFunction(() => innerWidth === 360, null, { timeout: 5000 });
     const muts = await page.evaluate(() => (window as unknown as { __muts: { target: string }[] }).__muts);
     // Only the bridge's host append; the TITLE change above was the hostile script's own.
-    expect(muts.filter((m) => m.target !== "TITLE")).toHaveLength(1);
+    const ours = muts.filter((m) => m.target !== "TITLE");
+    expect(ours, JSON.stringify(ours)).toHaveLength(1);
   });
 
   it("typing D into an input does not toggle Dev Mode", async () => {
     const frame = await overlayFrame();
     const open = async () => (await frame.$("[data-handoff-panel]")) !== null;
-    const before = await open();
+    // Close Dev Mode first so clicks reach the page (Inspect mode would pin instead).
+    for (let i = 0; i < 3 && (await open()); i++) {
+      await page.keyboard.press("Escape");
+      await frame.waitForSelector("[data-handoff-panel]", { state: "detached", timeout: 1000 }).catch(() => undefined);
+    }
+    expect(await open()).toBe(false);
     await page.click("#field");
-    await page.keyboard.type("dd");
+    await page.keyboard.type("d");
     await page.waitForTimeout(200);
-    expect(await open()).toBe(before);
+    expect(await open()).toBe(false);
+    expect(await page.inputValue("#field")).toBe("d");
   });
 });

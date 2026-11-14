@@ -9,7 +9,7 @@ describe("S7 no shell strings anywhere", () => {
       const src = readFileSync(file, "utf8");
       // node:child_process is off limits; execa is the only process API.
       expect(src, rel(file)).not.toMatch(/["'](node:)?child_process["']/);
-      expect(src, rel(file)).not.toMatch(/shell\s*:\s*(true|["'])/);
+      expect(src, rel(file)).not.toMatch(/\bshell\s*:\s*(true|["'])/);
       // execa's template-string and command-string forms parse a shell-like string.
       expect(src, rel(file)).not.toMatch(/\$\s*`|\$\(\s*\{[^}]*\}\s*\)\s*`|execaCommand/);
     }

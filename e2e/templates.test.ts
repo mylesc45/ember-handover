@@ -103,6 +103,17 @@ describe.each(names)("%s", (name) => {
     expect(errors).toEqual([]);
   }, 120_000);
 
+  it("Inspect pins an element and shows its measured specs", async () => {
+    const frame = await overlay(page);
+    await page.getByText(text).first().click();
+    await frame.waitForSelector("[data-handoff-inspect]");
+    const panel = (await frame.textContent("[data-handoff-inspect]")) ?? "";
+    expect(panel).toMatch(/Size\s*\d+(\.\d+)? × \d+/);
+    expect(panel).toContain("Typography");
+    expect(panel).toMatch(/Contrast|Role/);
+    await page.keyboard.press("Escape"); // unpin
+  }, 60_000);
+
   it("HMR updates the page through the proxy in under 2 s", async () => {
     const marker = `Handoff HMR ${Date.now()}`;
     await page.waitForTimeout(1000); // let the HMR socket settle after first load

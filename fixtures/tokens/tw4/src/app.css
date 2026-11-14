@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #F64668;
+  --color-ink: oklch(0.2 0.03 260);
+  --color-brand-soft: var(--color-brand);
+  --radius-card: 14px;
+  --text-hero: 3rem;
+  --text-hero--line-height: 1.1;
+  --font-display: "Inter", sans-serif;
+  --breakpoint-tablet: 48rem;
+  --shadow-card: 0 12px 32px rgb(15 20 32 / 0.45);
+  --tracking-tightish: -0.01em;
+}
+
+.not-theme {
+  --color-ignored: red;
+}

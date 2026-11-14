@@ -32,6 +32,12 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
+      - name: Install token fixtures (no install scripts)
+        shell: bash
+        run: |
+          for d in fixtures/tokens/tw3 fixtures/tokens/tw4; do
+            (cd "$d" && pnpm install --frozen-lockfile --ignore-scripts --ignore-workspace)
+          done
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
