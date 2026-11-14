@@ -4,11 +4,11 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import type { RawSpec } from "@ember-handover/bridge";
-import { chromium, type Browser, type Page } from "playwright";
+import type { Browser, Page } from "playwright-core";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { startStack } from "../../../security/lib/servers.js";
 import { seededHandler } from "../../../e2e/lib/seeded.js";
-import { createMeasurer, type Measurer } from "../src/index.js";
+import { createMeasurer, launchBrowser, type Measurer } from "../src/index.js";
 
 const measureScript = readFileSync(fileURLToPath(new URL("../../bridge/dist/measure.js", import.meta.url)), "utf8");
 
@@ -37,7 +37,9 @@ const pick = (s: RawSpec) => ({ colors: s.colors, shadow: s.effects.shadow, box:
 beforeAll(async () => {
   stack = await startStack(seededHandler);
   measurer = createMeasurer({ measureScript });
-  browser = await chromium.launch();
+  // Ground truth must come from the same browser build the measurer uses (installed Chrome
+  // if present): different builds shape text slightly differently, shifting x by subpixels.
+  browser = (await launchBrowser()).browser;
 }, 60_000);
 
 afterAll(async () => {

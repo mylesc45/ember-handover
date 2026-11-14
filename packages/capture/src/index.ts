@@ -46,7 +46,7 @@ interface Options {
  * Prefer the Chrome the user already has; fall back to a Playwright-managed Chromium if one
  * is installed. Never downloads anything (see DECISIONS.md: browser install).
  */
-async function defaultLaunch(): Promise<{ browser: Browser; kind: BrowserInfo["kind"] }> {
+export async function launchBrowser(): Promise<{ browser: Browser; kind: BrowserInfo["kind"] }> {
   try {
     return { browser: await chromium.launch({ channel: "chrome", headless: true }), kind: "chrome" };
   } catch {
@@ -57,7 +57,7 @@ async function defaultLaunch(): Promise<{ browser: Browser; kind: BrowserInfo["k
 export function createMeasurer(opts: Options): Measurer {
   let launched: Promise<{ browser: Browser; kind: BrowserInfo["kind"] }> | null = null;
   const get = () => {
-    launched ??= (opts.launch ?? defaultLaunch)().catch((e: unknown) => {
+    launched ??= (opts.launch ?? launchBrowser)().catch((e: unknown) => {
       launched = null;
       throw e;
     });
