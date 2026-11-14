@@ -1,10 +1,11 @@
-import { readFileSync } from "node:fs";
+import { cpSync, mkdirSync, readFileSync } from "node:fs";
 import { defineConfig } from "tsup";
 
 const { version } = JSON.parse(readFileSync("package.json", "utf8")) as { version: string };
 
-// Internal workspace packages are bundled into the single published CLI,
-// so the published package has zero runtime dependencies in M0.
+// Internal workspace packages are bundled into the single published CLI.
+// execa stays a real dependency so it is visible to audits and provenance.
+// The bridge and overlay builds are copied in as static assets.
 export default defineConfig({
   entry: { bin: "src/bin.ts" },
   format: ["esm"],
@@ -15,6 +16,12 @@ export default defineConfig({
   sourcemap: false,
   splitting: false,
   noExternal: [/^@ember-handover\//],
+  external: ["execa"],
   define: { __HANDOFF_VERSION__: JSON.stringify(version) },
   banner: { js: "#!/usr/bin/env node" },
+  onSuccess: async () => {
+    mkdirSync("dist/assets/overlay", { recursive: true });
+    cpSync("../bridge/dist/bridge.js", "dist/assets/bridge.js");
+    cpSync("../overlay/dist", "dist/assets/overlay", { recursive: true });
+  },
 });

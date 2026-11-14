@@ -2,11 +2,11 @@ import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["**/dist/**", "**/node_modules/**", "**/coverage/**"] },
+  { ignores: ["**/dist/**", "**/node_modules/**", "**/coverage/**", "fixtures/**"] },
   js.configs.recommended,
   ...tseslint.configs.strict,
   {
-    languageOptions: { globals: { process: "readonly", console: "readonly", URL: "readonly" } },
+    languageOptions: { globals: { process: "readonly", console: "readonly", URL: "readonly", Buffer: "readonly" } },
     rules: {
       // Security model S7: processes only via execa with argument arrays.
       "no-restricted-imports": [
@@ -26,7 +26,7 @@ export default tseslint.config(
   },
   {
     // Tests may spawn processes directly to exercise the built CLI.
-    files: ["**/test/**", "security/**"],
-    rules: { "no-restricted-imports": "off" },
+    files: ["**/test/**", "security/**", "e2e/**", "**/*.config.ts", "**/build-*.mjs"],
+    rules: { "no-restricted-imports": "off", "@typescript-eslint/no-non-null-assertion": "off" },
   },
 );

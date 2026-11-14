@@ -1,0 +1,66 @@
+@import "tailwindcss";
+@source "./";
+
+@font-face {
+  font-family: "Inter Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("/fonts/inter-var.woff2") format("woff2-variations");
+}
+@font-face {
+  font-family: "JetBrains Mono Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url("/fonts/jetbrains-mono-var.woff2") format("woff2-variations");
+}
+
+@theme {
+  --color-ember-indigo: #41436A;
+  --color-ember-plum:   #984063;
+  --color-ember-coral:  #F64668;
+  --color-ember-peach:  #FE9677;
+
+  --color-ink-950: #0F1420;
+  --color-ink-900: #1E2638;
+  --color-ink-800: #262F42;
+  --color-ink-700: #2D3A4F;
+
+  --color-fg-primary:   #FFFFFF;
+  --color-fg-secondary: #B8BDD0;
+  --color-fg-disabled:  #7E86A3;
+
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --shadow-panel: 0 12px 32px rgb(15 20 32 / 0.45);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: transparent;
+  overflow: hidden;
+}
+body {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--color-fg-primary);
+  -webkit-font-smoothing: antialiased;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}
