@@ -14,7 +14,7 @@ npx ember-handover@next --help
 
 ## Developing
 
-Requires Node 20.11+ and pnpm 11.
+Requires Node 22.13+ and pnpm 11.
 
 ```bash
 pnpm install

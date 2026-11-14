@@ -12,8 +12,7 @@
     "lint": "eslint .",
     "test": "pnpm run build && vitest run",
     "test:security": "pnpm run build && vitest run --project security",
-    "check": "pnpm run lint && pnpm run typecheck && pnpm run test",
-    "smoke": "node scripts/smoke-cli.mjs"
+    "check": "pnpm run lint && pnpm run typecheck && pnpm run test"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -26,7 +26,7 @@ export default tseslint.config(
   },
   {
     // Tests may spawn processes directly to exercise the built CLI.
-    files: ["**/test/**", "security/**", "scripts/**"],
-    rules: { "no-restricted-imports": "off", "no-console": "off" },
+    files: ["**/test/**", "security/**"],
+    rules: { "no-restricted-imports": "off" },
   },
 );

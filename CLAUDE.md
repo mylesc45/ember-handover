@@ -23,7 +23,7 @@ You are building **Handoff**, a dev-only design-to-dev handoff tool. `SPEC.md` i
 
 ## Stack
 
-- pnpm monorepo, TypeScript strict, Node 20+.
+- pnpm monorepo, TypeScript strict, Node 22.13+.
 - Overlay: Preact + Tailwind v4 using the `@theme` tokens in SPEC.md → "UI design system". Dark-only in v1.
 - Use the package layout in SPEC.md → "Build plan → Repo layout".
 

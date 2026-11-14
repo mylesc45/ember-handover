@@ -77,7 +77,7 @@ The app's scripts and Handoff's privileged API never share an origin; the only p
 
 | Component | Responsibility | Tech |
 | --- | --- | --- |
-| CLI (`handoff`) | Entry point, preflight, commands, plain-English errors | Node 20+, TypeScript, `citty` or `commander` |
+| CLI (`handoff`) | Entry point, preflight, commands, plain-English errors | Node 22.13+, TypeScript, `citty` or `commander` |
 | Detector | Framework, package manager, dev script, port, router, token sources | Reads `package.json`, lockfiles, config files (read-only) |
 | Supervisor | Starts the user's dev script if not running; restarts on crash | `execa`, no shell interpolation |
 | Proxy | Serves the app on `127.0.0.1:4000`, injects one bridge `<script>`, passes through HMR websockets | `http-proxy-3` or `undici`, streaming HTML rewriter |
@@ -536,7 +536,7 @@ A release ships only if the full compatibility matrix and the security suite pas
 | Each of the above × Tailwind v3, Tailwind v4, CSS Modules | Styling |
 | React + shadcn/ui, MUI, styled-components | Component libraries |
 
-Matrix size: about 25 templates × 3 OSes (macOS, Ubuntu, Windows) × Node 20 and 22.
+Matrix size: about 25 templates × 3 OSes (macOS, Ubuntu, Windows) × Node 22 and 24.
 
 ### Per-template assertions
 

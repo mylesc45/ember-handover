@@ -14,7 +14,7 @@
     "LICENSE"
   ],
   "engines": {
-    "node": ">=20.11"
+    "node": ">=22.13"
   },
   "repository": {
     "type": "git",

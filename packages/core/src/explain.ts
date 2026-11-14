@@ -35,8 +35,8 @@ const catalog = {
     fix: () => "Watch the project's releases on GitHub, or run `npx ember-handover@next` for the latest preview.",
   },
   NODE_TOO_OLD: {
-    message: (d) => `Handoff needs Node 20 or newer, but this is Node ${v(d.version)}.`,
-    fix: () => "Install Node 20 or later from nodejs.org, or switch with your version manager (for example `nvm use 20`).",
+    message: (d) => `Handoff needs Node 22.13 or newer, but this is Node ${v(d.version)}.`,
+    fix: () => "Install Node 22 or later from nodejs.org, or switch with your version manager (for example `nvm use 22`).",
   },
 } satisfies Record<string, Entry>;
 
