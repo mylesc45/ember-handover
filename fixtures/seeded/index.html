@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Seeded elements</title>
+<style>
+  @font-face { font-family: "JetBrains Mono"; src: url("/fonts/seed-mono.woff2") format("woff2-variations"); font-weight: 100 800; }
+  :root { --brand: #F64668; --space: 12px; font-size: 16px; }
+  * { box-sizing: content-box; }
+  body { margin: 0; font-family: system-ui, sans-serif; color: #18181b; background: #ffffff; }
+  main { width: 820px; padding: 8px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; align-items: flex-start; }
+  .leaf { background: #eef; }
+  /* states */
+  .stateful { background: #e4e4e7; color: #18181b; padding: 6px 10px; border: 1px solid #a1a1aa; transition: none; }
+  .stateful:hover { background: #F64668; color: #0F1420; }
+  .stateful:focus { outline: 3px solid #984063; outline-offset: 2px; }
+  .stateful:active { box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.4); }
+  .stateful:disabled { color: #7E86A3; background: #f4f4f5; }
+  .responsive { padding: 20px; font-size: 18px; background: #FE9677; }
+  @media (max-width: 600px) { .responsive { padding: 4px; font-size: 12px; } }
+</style>
+</head>
+<body>
+<main>
+  <!-- 1–10: box model -->
+  <div class="row">
+    <div data-seed="1" class="leaf" style="width:100px;height:40px">s1</div>
+    <div data-seed="2" class="leaf" style="width:100px;height:40px;padding:10px 7px 3px 1px">s2</div>
+    <div data-seed="3" class="leaf" style="width:90px;height:30px;margin:0 6px 4px 3px;border:2px solid #333">s3</div>
+    <div data-seed="4" class="leaf" style="width:80px;height:30px;border-style:solid;border-width:1px 3px 5px 7px;border-color:#111 #222 #333 #444">s4</div>
+    <div data-seed="5" class="leaf" style="box-sizing:border-box;width:120px;height:44px;padding:8px;border:4px solid #000">s5</div>
+    <div data-seed="6" class="leaf" style="width:7.5rem;height:2.25rem;padding:0.5rem 1.25em">s6</div>
+    <div data-seed="7" class="leaf" style="width:33.3px;height:21.7px;padding:1.5px">s7</div>
+    <div data-seed="8" class="leaf" style="width:10%;min-width:50px;height:30px;padding:2%">s8</div>
+    <div data-seed="9" class="leaf" style="width:calc(50px + 2rem);height:calc(10px * 3);padding:var(--space)">s9</div>
+    <div data-seed="10" class="leaf" style="width:60px;height:30px;transform:scale(1.5);margin:0 20px">s10</div>
+  </div>
+  <!-- 11–18: layout -->
+  <div class="row">
+    <div data-seed="11" style="display:flex;gap:12px;padding:4px;background:#ddd;width:140px"><span>a</span><span>b</span></div>
+    <div data-seed="12" style="display:flex;flex-direction:column;justify-content:space-between;align-items:center;row-gap:6px;padding:4px;background:#ddd;height:60px;width:80px"><i>a</i><i>b</i></div>
+    <div data-seed="13" style="display:grid;grid-template-columns:repeat(3, 20px);grid-template-rows:20px 20px;gap:4px 10px;padding:3px;background:#ccc"><b>1</b><b>2</b><b>3</b><b>4</b></div>
+    <div data-seed="14" style="display:inline-flex;flex-wrap:wrap;column-gap:3px;padding:5px;background:#bbb;width:60px"><u>x</u><u>y</u></div>
+    <div data-seed="15" style="display:inline-block;padding:4px 6px;background:#aaa">inline-block</div>
+    <span data-seed="16" style="padding:2px 4px;background:#999;margin:0 5px">inline span</span>
+    <div data-seed="17" style="position:relative;width:120px;height:40px;background:#eee"><div data-seed="18" style="position:absolute;top:5px;left:7px;width:30px;height:12px;background:#f00"></div></div>
+  </div>
+  <!-- 19–30: typography -->
+  <div class="row">
+    <p data-seed="19" style="margin:0;font-size:14px;line-height:20px">Para 14/20</p>
+    <p data-seed="20" style="margin:0;font-size:1.125rem;line-height:1.5">Unitless lh</p>
+    <p data-seed="21" style="margin:0;font-size:13px;line-height:normal">Normal lh</p>
+    <p data-seed="22" style="margin:0;font-weight:700;letter-spacing:0.05em">Bold tracked</p>
+    <p data-seed="23" style="margin:0;font-weight:450;letter-spacing:-0.5px;font-family:'JetBrains Mono', monospace">Mono 450</p>
+    <p data-seed="24" style="margin:0;font-family:'JetBrains Mono', monospace;font-size:12px;font-style:italic">Mono italic</p>
+    <p data-seed="25" style="margin:0;text-transform:uppercase;text-align:center;width:100px">upper</p>
+    <h1 data-seed="26" style="margin:0;font-size:32px">Heading 1</h1>
+    <h2 data-seed="27" style="margin:0;font-size:24px;font-weight:600">Heading 2</h2>
+    <small data-seed="28">small text</small>
+    <code data-seed="29">code()</code>
+    <p data-seed="30" style="margin:0;font-family:'Not A Real Font', 'JetBrains Mono', serif">Fallback to webfont</p>
+  </div>
+  <!-- 31–40: colour and effects -->
+  <div class="row">
+    <div data-seed="31" style="width:40px;height:30px;background:#F64668;color:#0F1420">hex</div>
+    <div data-seed="32" style="width:40px;height:30px;background:rgb(65 67 106 / 0.8);color:white">rgba</div>
+    <div data-seed="33" style="width:40px;height:30px;background:hsl(220 30% 20%);color:#FE9677">hsl</div>
+    <div data-seed="34" style="width:40px;height:30px;background:oklch(63.7% 0.237 25.331);color:oklch(98% 0 0)">oklch</div>
+    <div data-seed="35" style="width:40px;height:30px;background:color(display-p3 0.2 0.6 0.4);color:lab(20 10 -30)">p3</div>
+    <div data-seed="36" style="width:40px;height:30px;background:var(--brand);opacity:0.6">var</div>
+    <div data-seed="37" style="width:40px;height:30px;background:rebeccapurple;color:transparent;border-radius:10px 4px 0 20px">radii</div>
+    <div data-seed="38" style="width:40px;height:30px;background:#fff;box-shadow:0 12px 32px rgb(15 20 32 / 0.45), 0 0 0 1px #e4e4e7">shadow</div>
+    <div data-seed="39" style="width:40px;height:30px;background:#eee;transition:opacity 150ms ease-out, transform 0.2s">trans</div>
+    <div data-seed="40" style="width:40px;height:30px;border-radius:50%;background:linear-gradient(#F64668, #984063)">grad</div>
+  </div>
+  <!-- 41–50: accessibility and states -->
+  <div class="row">
+    <button data-seed="41" type="button">Continue</button>
+    <button data-seed="42" type="button" aria-label="Close dialog">✕</button>
+    <a data-seed="43" href="#pricing">See pricing</a>
+    <label>Email <input data-seed="44" type="email" style="width:120px"></label>
+    <img data-seed="45" alt="Company logo" width="24" height="24" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Crect width='24' height='24' fill='%23F64668'/%3E%3C/svg%3E">
+    <div data-seed="46" role="tab" aria-selected="true" style="padding:4px">Tab</div>
+    <input data-seed="47" type="checkbox" aria-label="Accept terms">
+    <button data-seed="48" class="stateful" type="button">Hover me</button>
+    <button data-seed="49" class="stateful" type="button" disabled>Disabled</button>
+    <div data-seed="50" class="responsive">Responsive</div>
+  </div>
+  <!-- contrast pairs from SPEC (not clicked; used by contrast test) -->
+  <div class="row" style="background:#1E2638;padding:8px">
+    <span data-contrast="15.11" style="color:#FFFFFF">white</span>
+    <span data-contrast="8.08" style="color:#B8BDD0">secondary</span>
+    <span data-contrast="7.08" style="color:#FE9677">peach</span>
+    <span data-contrast="4.19" style="color:#7E86A3">disabled</span>
+    <span data-contrast="9.39" style="color:#FFFFFF;background:#41436A;padding:2px">indigo</span>
+    <span data-contrast="5.25" style="color:#0F1420;background:#F64668;padding:2px">coral</span>
+  </div>
+</main>
+</body>
+</html>

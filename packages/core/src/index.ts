@@ -13,3 +13,4 @@ export {
   type OverlayAssets,
   type SessionInfo,
 } from "./server.js";
+export { parseMeasureRequest, type MeasureRequest } from "./measure-request.js";

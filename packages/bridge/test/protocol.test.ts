@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseBridgeEvent, parseOverlayCommand } from "../src/protocol.js";
+import { RAW } from "../../tokens/test/fixtures.js";
 
 describe("overlay → bridge commands", () => {
   it("accepts well-formed commands", () => {
@@ -45,4 +46,40 @@ describe("bridge → overlay events", () => {
     "rejects %j",
     (msg) => expect(parseBridgeEvent(msg)).toBeNull(),
   );
+});
+
+describe("inspect messages", () => {
+  it("accepts inspect commands", () => {
+    expect(parseOverlayCommand({ v: 1, type: "inspect", on: true })).not.toBeNull();
+    expect(parseOverlayCommand({ v: 1, type: "select", to: "parent" })).not.toBeNull();
+    expect(parseOverlayCommand({ v: 1, type: "select", to: "ancestor", index: 3 })).not.toBeNull();
+    expect(parseOverlayCommand({ v: 1, type: "select", to: "none" })).not.toBeNull();
+  });
+
+  it.each([
+    { v: 1, type: "inspect", on: "yes" },
+    { v: 1, type: "select", to: "sibling" },
+    { v: 1, type: "select", to: "ancestor", index: -1 },
+    { v: 1, type: "select", to: "ancestor", index: 1.5 },
+    { v: 1, type: "select", to: "ancestor", index: 999 },
+  ])("rejects %j", (m) => expect(parseOverlayCommand(m)).toBeNull());
+
+  it("accepts a full spec event", () => {
+    expect(parseBridgeEvent({ v: 1, type: "spec", pinned: true, spec: RAW })).toEqual({ v: 1, type: "spec", pinned: true, spec: RAW });
+    expect(parseBridgeEvent({ v: 1, type: "spec", pinned: false, spec: null })).not.toBeNull();
+  });
+
+  it("rejects malformed specs deeply", () => {
+    const bad = [
+      { ...RAW, rect: { ...RAW.rect, width: Number.NaN } },
+      { ...RAW, rect: { ...RAW.rect, width: Infinity } },
+      { ...RAW, box: { ...RAW.box, padding: [1, 2, 3] } },
+      { ...RAW, ancestors: Array.from({ length: 100 }, () => RAW.ancestors[0]) },
+      { ...RAW, text: "x".repeat(10_000) },
+      { ...RAW, extra: 1 },
+      { ...RAW, colors: { ...RAW.colors, text: 5 } },
+      { ...RAW, typography: { ...RAW.typography, rendered: 7 } },
+    ];
+    for (const spec of bad) expect(parseBridgeEvent({ v: 1, type: "spec", pinned: true, spec }), JSON.stringify(spec).slice(0, 80)).toBeNull();
+  });
 });

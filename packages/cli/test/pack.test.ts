@@ -29,7 +29,9 @@ beforeAll(() => {
   pkgDir = join(work, "package");
   // Stand-in for `npm install`: link the one runtime dependency, offline.
   mkdirSync(join(pkgDir, "node_modules"));
-  symlinkSync(realpathSync(join(cliDir, "node_modules", "execa")), join(pkgDir, "node_modules", "execa"), "junction");
+  for (const dep of ["execa", "playwright-core"]) {
+    symlinkSync(realpathSync(join(cliDir, "node_modules", dep)), join(pkgDir, "node_modules", dep), "junction");
+  }
 }, 60_000);
 
 afterAll(() => rmSync(work, { recursive: true, force: true }));
@@ -43,10 +45,10 @@ describe("published tarball", () => {
     expect(pkg.publishConfig).toMatchObject({ provenance: true, access: "public", tag: "next" });
   });
 
-  it("has no install-time scripts; execa is the only runtime dependency", () => {
+  it("has no install-time scripts; execa and playwright-core are the only runtime dependencies", () => {
     const pkg = JSON.parse(readFileSync(join(pkgDir, "package.json"), "utf8")) as Record<string, Record<string, string> | undefined>;
     for (const s of ["preinstall", "install", "postinstall", "prepare"]) expect(pkg.scripts?.[s]).toBeUndefined();
-    expect(Object.keys(pkg.dependencies ?? {})).toEqual(["execa"]);
+    expect(Object.keys(pkg.dependencies ?? {}).sort()).toEqual(["execa", "playwright-core"]);
     expect(JSON.stringify(pkg)).not.toContain("workspace:");
   });
 
@@ -54,7 +56,7 @@ describe("published tarball", () => {
     const top = readdirSync(pkgDir).filter((f) => f !== "node_modules").sort();
     expect(top).toEqual(["LICENSE", "README.md", "dist", "package.json"]);
     expect(readdirSync(join(pkgDir, "dist")).sort()).toEqual(["assets", "bin.js"]);
-    expect(readdirSync(join(pkgDir, "dist", "assets")).sort()).toEqual(["bridge.js", "overlay"]);
+    expect(readdirSync(join(pkgDir, "dist", "assets")).sort()).toEqual(["bridge.js", "measure.js", "overlay"]);
     expect(readdirSync(join(pkgDir, "dist", "assets", "overlay")).sort()).toEqual(["fonts", "overlay.css", "overlay.js"]);
   });
 

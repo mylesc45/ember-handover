@@ -7,6 +7,10 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "devDependencies": {
-    "execa": "^10.2.1"
+    "execa": "^10.2.1",
+    "@ember-handover/bridge": "workspace:*",
+    "@ember-handover/tokens": "workspace:*",
+    "@ember-handover/core": "workspace:*",
+    "@ember-handover/proxy": "workspace:*"
   }
 }

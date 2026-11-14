@@ -139,6 +139,29 @@ describe("S4 hostile page cannot reach the token or drive the bridge", () => {
     expect(await frameSize(frame)).toEqual(before);
   });
 
+  it("forged inspect commands from the page don't make the bridge measure or intercept clicks", async () => {
+    const frame = await overlayFrame();
+    await frame.evaluate(() => {
+      (window as unknown as { __forged: number }).__forged = 0;
+      addEventListener("message", (e) => {
+        if ((e.data as { type?: string })?.type === "spec") (window as unknown as { __forged: number }).__forged++;
+      });
+    });
+    await page.evaluate(() => {
+      for (const t of ["*", location.origin]) {
+        window.postMessage({ v: 1, type: "inspect", on: true }, t);
+        window.postMessage({ v: 1, type: "select", to: "parent" }, t);
+      }
+    });
+    let clicks = 0;
+    await page.exposeFunction("__countClick", () => clicks++);
+    await page.evaluate(() => document.getElementById("app")!.addEventListener("click", () => (window as unknown as { __countClick: () => void }).__countClick()));
+    await page.click("#app");
+    await page.waitForTimeout(300);
+    expect(await frame.evaluate(() => (window as unknown as { __forged: number }).__forged)).toBe(0);
+    expect(clicks).toBe(1); // the app's own click handler still ran: inspect mode is off
+  });
+
   it("text the page sends the overlay renders as plain text", async () => {
     const frame = await overlayFrame();
     await page.evaluate(() => {
@@ -153,8 +176,9 @@ describe("S4 hostile page cannot reach the token or drive the bridge", () => {
 
   it("D opens the panel and Esc closes it, with no DOM writes outside the shadow root", async () => {
     const frame = await overlayFrame();
-    await page.click("#app");
-    await page.keyboard.press("Escape");
+    await page.click("#app"); // in Inspect mode this pins #app
+    await page.keyboard.press("Escape"); // first Esc unpins…
+    await page.keyboard.press("Escape"); // …the next closes Dev Mode
     await frame.waitForSelector("[data-handoff-panel]", { state: "detached" });
     await page.keyboard.press("d");
     await frame.waitForSelector("[data-handoff-panel]");
@@ -169,10 +193,16 @@ describe("S4 hostile page cannot reach the token or drive the bridge", () => {
   it("typing D into an input does not toggle Dev Mode", async () => {
     const frame = await overlayFrame();
     const open = async () => (await frame.$("[data-handoff-panel]")) !== null;
-    const before = await open();
+    // Close Dev Mode first so clicks reach the page (Inspect mode would pin instead).
+    for (let i = 0; i < 3 && (await open()); i++) {
+      await page.keyboard.press("Escape");
+      await frame.waitForSelector("[data-handoff-panel]", { state: "detached", timeout: 1000 }).catch(() => undefined);
+    }
+    expect(await open()).toBe(false);
     await page.click("#field");
-    await page.keyboard.type("dd");
+    await page.keyboard.type("d");
     await page.waitForTimeout(200);
-    expect(await open()).toBe(before);
+    expect(await open()).toBe(false);
+    expect(await page.inputValue("#field")).toBe("d");
   });
 });

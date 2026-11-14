@@ -4,7 +4,7 @@ import { defineConfig } from "tsup";
 const { version } = JSON.parse(readFileSync("package.json", "utf8")) as { version: string };
 
 // Internal workspace packages are bundled into the single published CLI.
-// execa stays a real dependency so it is visible to audits and provenance.
+// execa and playwright-core stay real dependencies so they are visible to audits and provenance.
 // The bridge and overlay builds are copied in as static assets.
 export default defineConfig({
   entry: { bin: "src/bin.ts" },
@@ -16,12 +16,13 @@ export default defineConfig({
   sourcemap: false,
   splitting: false,
   noExternal: [/^@ember-handover\//],
-  external: ["execa"],
+  external: ["execa", "playwright-core"],
   define: { __HANDOFF_VERSION__: JSON.stringify(version) },
   banner: { js: "#!/usr/bin/env node" },
   onSuccess: async () => {
     mkdirSync("dist/assets/overlay", { recursive: true });
     cpSync("../bridge/dist/bridge.js", "dist/assets/bridge.js");
+    cpSync("../bridge/dist/measure.js", "dist/assets/measure.js");
     cpSync("../overlay/dist", "dist/assets/overlay", { recursive: true });
   },
 });

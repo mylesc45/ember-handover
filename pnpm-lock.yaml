@@ -35,21 +35,52 @@ importers:
 
   e2e:
     devDependencies:
+      '@ember-handover/bridge':
+        specifier: workspace:*
+        version: link:../packages/bridge
+      '@ember-handover/core':
+        specifier: workspace:*
+        version: link:../packages/core
+      '@ember-handover/proxy':
+        specifier: workspace:*
+        version: link:../packages/proxy
+      '@ember-handover/tokens':
+        specifier: workspace:*
+        version: link:../packages/tokens
       execa:
         specifier: ^10.2.1
         version: 10.2.1
 
   packages/bridge: {}
 
+  packages/capture:
+    dependencies:
+      '@ember-handover/core':
+        specifier: workspace:*
+        version: link:../core
+      playwright-core:
+        specifier: 1.65.1
+        version: 1.65.1
+    devDependencies:
+      '@ember-handover/bridge':
+        specifier: workspace:*
+        version: link:../bridge
+
   packages/cli:
     dependencies:
       execa:
         specifier: ^10.2.1
         version: 10.2.1
+      playwright-core:
+        specifier: 1.65.1
+        version: 1.65.1
     devDependencies:
       '@ember-handover/bridge':
         specifier: workspace:*
         version: link:../bridge
+      '@ember-handover/capture':
+        specifier: workspace:*
+        version: link:../capture
       '@ember-handover/core':
         specifier: workspace:*
         version: link:../core
@@ -59,6 +90,9 @@ importers:
       '@ember-handover/proxy':
         specifier: workspace:*
         version: link:../proxy
+      '@ember-handover/tokens':
+        specifier: workspace:*
+        version: link:../tokens
 
   packages/core: {}
 
@@ -70,6 +104,9 @@ importers:
       '@ember-handover/core':
         specifier: workspace:*
         version: link:../core
+      '@ember-handover/tokens':
+        specifier: workspace:*
+        version: link:../tokens
       '@fontsource-variable/inter':
         specifier: ^5.3.0
         version: 5.3.0
@@ -92,6 +129,19 @@ importers:
         specifier: workspace:*
         version: link:../core
 
+  packages/tokens:
+    dependencies:
+      execa:
+        specifier: ^10.2.1
+        version: 10.2.1
+    devDependencies:
+      '@ember-handover/bridge':
+        specifier: workspace:*
+        version: link:../bridge
+      '@ember-handover/core':
+        specifier: workspace:*
+        version: link:../core
+
   security:
     devDependencies:
       '@ember-handover/core':
@@ -100,6 +150,9 @@ importers:
       '@ember-handover/proxy':
         specifier: workspace:*
         version: link:../packages/proxy
+      '@ember-handover/tokens':
+        specifier: workspace:*
+        version: link:../packages/tokens
 
 packages:
 
@@ -1351,6 +1404,11 @@ packages:
 
   playwright-core@1.65.0:
     resolution: {integrity: sha512-vNSKgH6YqtN7cdT/L334zo0a+YwkrpicyrHJlWWPIm/Q+Nn2SWInil01oT0mbu96U4GgoRtCYQD9CzJQgju+lA==}
+    engines: {node: '>=20'}
+    hasBin: true
+
+  playwright-core@1.65.1:
+    resolution: {integrity: sha512-hqPpz7blSMPxWVdoeE1yiBSzXsKiVOd2k+kjCvmUywD2GPO2Dd9HfcWnq9NN0GHbNZDFgZ9JfBFr+X5/BLo0qw==}
     engines: {node: '>=20'}
     hasBin: true
 
@@ -2672,6 +2730,8 @@ snapshots:
       pathe: 2.0.3
 
   playwright-core@1.65.0: {}
+
+  playwright-core@1.65.1: {}
 
   playwright@1.65.0:
     dependencies:

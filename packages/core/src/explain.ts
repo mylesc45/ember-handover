@@ -94,6 +94,26 @@ const catalog = {
     message: () => "Handoff doesn't have anything at this address.",
     fix: () => "Reload the page; if this keeps happening, run `npx ember-handover doctor`.",
   },
+  BROWSER_MISSING: {
+    message: () => "States and breakpoints are measured in a headless browser, and Handoff couldn't find Chrome or Chromium on this machine.",
+    fix: () => "Install Google Chrome, or run `npx playwright install chromium` once, then try again.",
+  },
+  ELEMENT_NOT_FOUND: {
+    message: () => "Handoff couldn't find this element when it loaded the page in a fresh browser.",
+    fix: () => "The element may need a signed-in session or a click to appear; reproduce it with a fixture, or measure it at the current size instead.",
+  },
+  MEASURE_FAILED: {
+    message: () => "Handoff couldn't measure this element in the headless browser.",
+    fix: () => "Try again; if it keeps failing, run `npx ember-handover doctor`.",
+  },
+  BAD_MEASURE_REQUEST: {
+    message: () => "That measure request isn't valid, so Handoff ignored it.",
+    fix: () => "Measure elements from the Dev Mode panel; requests must target your app on localhost.",
+  },
+  BODY_TOO_LARGE: {
+    message: () => "That request was too large for Handoff's local API.",
+    fix: () => "Send a smaller request body (16 KB or less).",
+  },
 } satisfies Record<string, Entry>;
 
 export type ErrorCode = keyof typeof catalog;

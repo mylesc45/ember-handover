@@ -73,8 +73,10 @@ export function createProxyHandlers(opts: ProxyOptions): ProxyHandlers {
       },
       (up) => {
         const type = String(up.headers["content-type"] ?? "");
+        // Handoff's own headless pages (states, breakpoints) are measured without the bridge.
+        const headless = req.headers["x-handoff-headless"] === "1";
         const isHtml =
-          /^text\/html\b/i.test(type) && req.method !== "HEAD" && up.statusCode !== 204 && up.statusCode !== 304;
+          !headless && /^text\/html\b/i.test(type) && req.method !== "HEAD" && up.statusCode !== 204 && up.statusCode !== 304;
         if (!isHtml) {
           res.writeHead(up.statusCode ?? 502, up.statusMessage, up.rawHeaders);
           up.pipe(res);

@@ -40,11 +40,14 @@
   },
   "devDependencies": {
     "@ember-handover/bridge": "workspace:*",
+    "@ember-handover/capture": "workspace:*",
     "@ember-handover/core": "workspace:*",
     "@ember-handover/overlay": "workspace:*",
-    "@ember-handover/proxy": "workspace:*"
+    "@ember-handover/proxy": "workspace:*",
+    "@ember-handover/tokens": "workspace:*"
   },
   "dependencies": {
-    "execa": "^10.2.1"
+    "execa": "^10.2.1",
+    "playwright-core": "1.65.1"
   }
 }

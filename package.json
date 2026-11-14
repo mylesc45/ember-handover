@@ -10,7 +10,7 @@
     "build": "pnpm --filter \"ember-handover...\" run build",
     "typecheck": "pnpm -r run typecheck",
     "lint": "eslint .",
-    "test": "pnpm run build && vitest run --project core --project cli --project proxy --project bridge --project security",
+    "test": "pnpm run build && vitest run --project core --project cli --project proxy --project bridge --project tokens --project capture --project accuracy --project security",
     "check": "pnpm run lint && pnpm run typecheck && pnpm run test",
     "test:e2e": "pnpm run build && vitest run --project e2e"
   },

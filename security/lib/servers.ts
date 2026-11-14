@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import http from "node:http";
 import type { AddressInfo } from "node:net";
 import { join } from "node:path";
-import { createCoreServer, generateToken, loadOverlayAssets, loopbackOrigins, type AppStatus } from "@ember-handover/core";
+import { createCoreServer, generateToken, loadOverlayAssets, loopbackOrigins, type AppStatus, type MeasureRequest } from "@ember-handover/core";
 import { createProxy } from "@ember-handover/proxy";
 import { packagesDir } from "./repo.js";
 
@@ -28,10 +28,11 @@ export async function upstream(handler: http.RequestListener) {
   return { server, port, close: () => new Promise<void>((r) => server.close(() => r())) };
 }
 
-export async function startStack(handler: http.RequestListener) {
+export async function startStack(handler: http.RequestListener, opts: { tokens?: () => Promise<unknown> } = {}) {
   const up = await upstream(handler);
   const token = generateToken();
   const status: AppStatus = { state: "running", lines: [] };
+  const measureCalls: MeasureRequest[] = [];
 
   // Reserve the proxy port first so the core server knows the app origins.
   const proxyServer = http.createServer();
@@ -45,6 +46,12 @@ export async function startStack(handler: http.RequestListener) {
     assets: overlayAssets(),
     session: () => ({ version: "test", framework: "Test", appUrl: `http://127.0.0.1:${up.port}` }),
     status: () => status,
+    tokens: opts.tokens ?? (async () => ({ system: "none", sources: [], spacingBase: null, breakpoints: [], tokens: [] })),
+    measure: async (req) => {
+      measureCalls.push(req);
+      return { ok: true };
+    },
+    browser: async () => ({ available: false, kind: null }),
   });
   const corePort = await listen(core);
   const overlayUrl = `http://127.0.0.1:${corePort}/`;
@@ -56,6 +63,7 @@ export async function startStack(handler: http.RequestListener) {
   return {
     token,
     status,
+    measureCalls,
     upstreamPort: up.port,
     proxyPort,
     corePort,
