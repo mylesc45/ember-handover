@@ -1,0 +1,9 @@
+packages:
+  - packages/*
+  - security
+
+# Supply-chain policy: no dependency may run install scripts.
+# esbuild ships its binary through optional platform packages, so its
+# postinstall check is not needed.
+allowBuilds:
+  esbuild: false

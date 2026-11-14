@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.tsbuildinfo
+coverage/
+*.tgz
+.handoff/cache/
+handoff-exports/
+.DS_Store

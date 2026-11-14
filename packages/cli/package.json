@@ -1,0 +1,39 @@
+{
+  "name": "ember-handover",
+  "version": "0.0.0-alpha.0",
+  "description": "Dev Mode for any web app's dev server: exact specs, click-to-source, flows and change review. Local-only, dev-only.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "ember-handover": "./dist/bin.js",
+    "handoff": "./dist/bin.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20.11"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mylesc45/ember-handover.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/mylesc45/ember-handover#readme",
+  "bugs": "https://github.com/mylesc45/ember-handover/issues",
+  "keywords": ["design-handoff", "dev-mode", "inspect", "devtools"],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "tag": "next"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@ember-handover/core": "workspace:*"
+  }
+}
