@@ -4,7 +4,7 @@
   "type": "module",
   "packageManager": "pnpm@11.2.2",
   "engines": {
-    "node": ">=20.11"
+    "node": ">=22.13"
   },
   "scripts": {
     "build": "pnpm --filter ember-handover run build",
@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "test": "pnpm run build && vitest run",
     "test:security": "pnpm run build && vitest run --project security",
-    "check": "pnpm run lint && pnpm run typecheck && pnpm run test"
+    "check": "pnpm run lint && pnpm run typecheck && pnpm run test",
+    "smoke": "node scripts/smoke-cli.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

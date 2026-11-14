@@ -6,7 +6,7 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.strict,
   {
-    languageOptions: { globals: { process: "readonly", console: "readonly" } },
+    languageOptions: { globals: { process: "readonly", console: "readonly", URL: "readonly" } },
     rules: {
       // Security model S7: processes only via execa with argument arrays.
       "no-restricted-imports": [
@@ -26,7 +26,7 @@ export default tseslint.config(
   },
   {
     // Tests may spawn processes directly to exercise the built CLI.
-    files: ["**/test/**", "security/**"],
-    rules: { "no-restricted-imports": "off" },
+    files: ["**/test/**", "security/**", "scripts/**"],
+    rules: { "no-restricted-imports": "off", "no-console": "off" },
   },
 );
