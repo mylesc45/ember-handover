@@ -29,7 +29,10 @@ describe("flow replay", () => {
     const r = await replayer.replay({ appUrl: stack.proxyUrl, flow: flow("checkout"), outDir: out });
     expect(r.status).toBe("passing");
     expect(r.steps.map((s) => s.ok)).toEqual([true, true, true, true, true, true]);
-    for (const s of r.steps) expect(existsSync(join(out, s.screenshot!))).toBe(true);
+    for (const s of r.steps) {
+      expect(s.screenshot, `step ${s.index + 1} has a screenshot`).toBeTruthy();
+      expect(existsSync(join(out, s.screenshot ?? ""))).toBe(true);
+    }
     expect(r.steps[0]?.url).toBe(`${stack.proxyUrl}/pricing`);
   }, 60_000);
 

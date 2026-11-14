@@ -240,11 +240,14 @@ export function createReplayer(opts: { root: string; fixturesDir: string; launch
           } catch (e) {
             error = e instanceof StepError ? e : new StepError(`This step failed: ${(e as Error).message.split("\n")[0]}`);
           }
+          // A cold browser on a slow machine can take a while to paint; retry once.
           const shot = `${i + 1}.png`;
-          const saved = await page
-            .screenshot({ path: join(outDir, shot), timeout: 5000 })
-            .then(() => shot)
-            .catch(() => null);
+          const capture = () =>
+            page
+              .screenshot({ path: join(outDir, shot), timeout: 15_000 })
+              .then(() => shot)
+              .catch(() => null);
+          const saved = (await capture()) ?? (await capture());
           steps.push({
             index: i,
             ok: !error,
