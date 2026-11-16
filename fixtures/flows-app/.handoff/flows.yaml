@@ -1,0 +1,31 @@
+version: 1
+baseUrl: /
+fixtures: .handoff/fixtures
+flows:
+  - id: checkout
+    name: Checkout
+    intent: Buy a plan in under 3 steps
+    steps:
+      - goto: /pricing
+        intent: User compares plans
+      - click: { testid: plan-pro }
+      - fill: { testid: email, value: "test@example.com" }
+      - select: { label: Billing, value: yearly }
+      - click: { role: button, name: Continue }
+      - expect: { text: "Payment" }
+    states:
+      - id: card-declined
+        name: Card declined
+        fixture: payments/declined.json
+        at: 5
+  - id: home
+    name: Home
+    steps:
+      - goto: /
+      - click: { text: See pricing }
+      - expect: { url: /pricing }
+  - id: broken
+    name: Broken on purpose
+    steps:
+      - goto: /pricing
+      - click: { testid: does-not-exist }

@@ -1,6 +1,10 @@
 import type { RawSpec } from "@ember-handover/bridge";
 import { HandoffError } from "@ember-handover/core";
-import { chromium, type Browser } from "playwright-core";
+import type { Browser } from "playwright-core";
+import { HEADLESS_HEADER, launchBrowser } from "./browser.js";
+
+export { HEADLESS_HEADER, launchBrowser } from "./browser.js";
+export * from "./replay.js";
 
 export type MeasureState = "default" | "hover" | "focus" | "active" | "disabled";
 
@@ -22,9 +26,6 @@ export interface Measurer {
   close(): Promise<void>;
 }
 
-/** Header the proxy honours to skip bridge injection in Handoff's own headless pages. */
-export const HEADLESS_HEADER = "x-handoff-headless";
-
 /**
  * Pseudo-classes forced for each state. "Active" means pressed, which in a real browser is
  * hover + active + focus at once (a button takes focus on mouse-down).
@@ -42,17 +43,6 @@ interface Options {
   launch?: () => Promise<{ browser: Browser; kind: BrowserInfo["kind"] }>;
 }
 
-/**
- * Prefer the Chrome the user already has; fall back to a Playwright-managed Chromium if one
- * is installed. Never downloads anything (see DECISIONS.md: browser install).
- */
-export async function launchBrowser(): Promise<{ browser: Browser; kind: BrowserInfo["kind"] }> {
-  try {
-    return { browser: await chromium.launch({ channel: "chrome", headless: true }), kind: "chrome" };
-  } catch {
-    return { browser: await chromium.launch({ headless: true }), kind: "chromium" };
-  }
-}
 
 export function createMeasurer(opts: Options): Measurer {
   let launched: Promise<{ browser: Browser; kind: BrowserInfo["kind"] }> | null = null;

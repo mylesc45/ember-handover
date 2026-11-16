@@ -28,7 +28,10 @@ export async function upstream(handler: http.RequestListener) {
   return { server, port, close: () => new Promise<void>((r) => server.close(() => r())) };
 }
 
-export async function startStack(handler: http.RequestListener, opts: { tokens?: () => Promise<unknown> } = {}) {
+export async function startStack(
+  handler: http.RequestListener,
+  opts: { tokens?: () => Promise<unknown>; flows?: NonNullable<Parameters<typeof createCoreServer>[0]["flows"]> } = {},
+) {
   const up = await upstream(handler);
   const token = generateToken();
   const status: AppStatus = { state: "running", lines: [] };
@@ -52,6 +55,7 @@ export async function startStack(handler: http.RequestListener, opts: { tokens?:
       return { ok: true };
     },
     browser: async () => ({ available: false, kind: null }),
+    ...(opts.flows ? { flows: opts.flows } : {}),
   });
   const corePort = await listen(core);
   const overlayUrl = `http://127.0.0.1:${corePort}/`;

@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { api, config, type Result } from "./api.js";
 import { createChannel } from "./channel.js";
 import { CopyAs } from "./CopyAs.js";
+import { Flows } from "./Flows.js";
 import { Inspect, type InspectState } from "./Inspect.js";
 import { HasTokens, Kbd } from "./ui.js";
 
@@ -18,6 +19,8 @@ const MODES: { id: Mode; label: string }[] = [
 
 export function App() {
   const [open, setOpen] = useState(false);
+  const openRef = useRef(false);
+  openRef.current = open;
   const [mode, setMode] = useState<Mode>("inspect");
   const [page, setPage] = useState<{ url: string; title: string } | null>(null);
   const [session, setSession] = useState<Result<SessionInfo> | null>(null);
@@ -34,7 +37,8 @@ export function App() {
         if (e.type === "page") setPage({ url: e.url, title: e.title });
         else if (e.type === "spec") setLive({ spec: e.spec, pinned: e.pinned });
         else if (e.key === "toggle") setOpen((o) => !o);
-        else setOpen(false);
+        else if (e.key === "escape") setOpen(false);
+        else if (openRef.current) setMode(e.key);
       }),
     [],
   );
@@ -103,6 +107,9 @@ export function App() {
         if (live.pinned) channel.send({ v: 1, type: "select", to: "none" });
         else setOpen(false);
       } else if (e.key === "d" || e.key === "D") setOpen((o) => !o);
+      else if (e.key === "f" || e.key === "F") setMode("flows");
+      else if (e.key === "c" || e.key === "C") setMode("changes");
+      else if (e.key === "i" || e.key === "I") setMode("inspect");
       else if (live.pinned && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
         e.preventDefault();
         channel.send({ v: 1, type: "select", to: e.key === "ArrowUp" ? "parent" : "child" });
@@ -165,7 +172,7 @@ export function App() {
         </div>
       )}
 
-      {page && mode !== "inspect" && (
+      {page && mode === "changes" && (
         <div class="border-b border-ink-700 px-4 py-2">
           <p class="truncate text-[15px] leading-5 font-semibold" title={page.title}>
             {page.title || "Untitled page"}
@@ -188,17 +195,21 @@ export function App() {
           onAncestor={(index) => channel.send({ v: 1, type: "select", to: "ancestor", index })}
         />
         </HasTokens.Provider>
+      ) : mode === "flows" ? (
+        <Flows route={route} navigate={(path) => channel.send({ v: 1, type: "navigate", path })} />
       ) : (
         <main class="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
           <Empty mode={mode} />
         </main>
       )}
 
+      {mode !== "flows" && (
       <footer class="flex min-h-12 shrink-0 items-center gap-2 border-t border-ink-700 px-4 py-2 text-xs leading-4 text-fg-secondary">
         <Connection session={session} page={page} />
         <span class="flex-1" />
         {mode === "inspect" && <CopyAs spec={spec} route={route} />}
       </footer>
+      )}
     </section>
   );
 }
@@ -227,9 +238,8 @@ function Pill({ onOpen }: { onOpen: () => void }) {
   );
 }
 
-function Empty({ mode }: { mode: Exclude<Mode, "inspect"> }) {
-  const copy: Record<Exclude<Mode, "inspect">, [string, string]> = {
-    flows: ["Your agent will add flows as it builds.", "Flows arrive in a later preview build."],
+function Empty({ mode }: { mode: "changes" }) {
+  const copy: Record<"changes", [string, string]> = {
     changes: ["No changes to review yet.", "Run `npx ember-handover review <pr>` once review ships."],
   };
   const [title, body] = copy[mode];

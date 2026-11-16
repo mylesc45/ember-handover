@@ -14,3 +14,23 @@ export {
   type SessionInfo,
 } from "./server.js";
 export { parseMeasureRequest, type MeasureRequest } from "./measure-request.js";
+export {
+  describeSelector,
+  describeStep,
+  isRelativePath,
+  isRepoPath,
+  MAX_FLOWS_BYTES,
+  parseFlows,
+  stepVerb,
+  VERBS,
+  type Flow,
+  type FlowFile,
+  type FlowIssue,
+  type FlowState,
+  type ParsedFlows,
+  type Selector,
+  type Step,
+  type Verb,
+} from "./flows.js";
+export { resolveInside } from "./paths.js";
+export { scanSecrets, type SecretFinding } from "./secrets.js";

@@ -114,6 +114,30 @@ const catalog = {
     message: () => "That request was too large for Handoff's local API.",
     fix: () => "Send a smaller request body (16 KB or less).",
   },
+  PATH_OUTSIDE: {
+    message: (d) => `The path "${v(d.path)}" points outside your repo, so Handoff won't read or write it.`,
+    fix: () => "Use a path inside the repo (inside .handoff/ for fixtures).",
+  },
+  NO_FLOWS: {
+    message: () => "There's no .handoff/flows.yaml in this repo yet.",
+    fix: () => "Run `npx ember-handover` and answer Y to connect your coding agent; it drafts flows from your routes.",
+  },
+  FLOWS_INVALID: {
+    message: (d) => `In flows.yaml line ${v(d.line)}: ${v(d.message).replace(/[.]?$/, ".")}`,
+    fix: () => "Fix that line (or ask your coding agent to), then run `npx ember-handover check` again.",
+  },
+  BAD_REPLAY_TARGET: {
+    message: () => "Flows can only be replayed against your app on localhost.",
+    fix: () => "Run `npx ember-handover` or `npx ember-handover check` from your app's folder.",
+  },
+  FLOW_NOT_FOUND: {
+    message: (d) => `There's no flow called "${v(d.id)}" in flows.yaml.`,
+    fix: () => "Reload the Flows list; the file may have changed.",
+  },
+  REMOVE_NEEDS_CONFIRM: {
+    message: () => "Removing Handoff deletes .handoff/ (your flows and notes), so it needs a yes.",
+    fix: () => "Run it in a terminal and answer y, or pass `--yes` in scripts.",
+  },
 } satisfies Record<string, Entry>;
 
 export type ErrorCode = keyof typeof catalog;

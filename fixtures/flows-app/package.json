@@ -1,0 +1,1 @@
+{ "name": "flows-app", "private": true, "scripts": { "dev": "node server.mjs --port 5199" } }

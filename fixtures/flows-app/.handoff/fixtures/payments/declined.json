@@ -1,0 +1,1 @@
+{ "routes": [{ "url": "/api/pay", "method": "POST", "status": 402, "json": { "error": "insufficient funds" } }] }

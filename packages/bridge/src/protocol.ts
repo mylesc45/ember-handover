@@ -87,11 +87,13 @@ export type OverlayCommand =
   | { v: 1; type: "layout"; mode: LayoutMode }
   | { v: 1; type: "inspect"; on: boolean }
   | { v: 1; type: "select"; to: Exclude<SelectTarget, "ancestor"> }
-  | { v: 1; type: "select"; to: "ancestor"; index: number };
+  | { v: 1; type: "select"; to: "ancestor"; index: number }
+  /** Flows Live mode: open a page of the app in this tab. Same-origin paths only. */
+  | { v: 1; type: "navigate"; path: string };
 
 export type BridgeEvent =
   | { v: 1; type: "page"; url: string; title: string }
-  | { v: 1; type: "key"; key: "toggle" | "escape" }
+  | { v: 1; type: "key"; key: "toggle" | "escape" | "inspect" | "flows" | "changes" }
   | { v: 1; type: "spec"; pinned: boolean; spec: RawSpec | null };
 
 // --- tiny schema combinators -------------------------------------------------------
@@ -182,11 +184,14 @@ const RAW_SPEC = obj({
 });
 
 const v = oneOf(PROTOCOL_VERSION);
+/** "/path?query#hash" on this origin: never "//host", "/\\host" or a scheme. */
+const sameOriginPath: Check = (x) => typeof x === "string" && x.length <= MAX_URL && /^\/(?![/\\])[^\s\\]*$/.test(x);
 
 const COMMANDS: Record<string, Check[]> = {
   hello: [obj({ v, type: oneOf("hello") })],
   layout: [obj({ v, type: oneOf("layout"), mode: oneOf("pill", "panel") })],
   inspect: [obj({ v, type: oneOf("inspect"), on: bool })],
+  navigate: [obj({ v, type: oneOf("navigate"), path: sameOriginPath })],
   select: [
     obj({ v, type: oneOf("select"), to: oneOf("parent", "child", "none") }),
     obj({ v, type: oneOf("select"), to: oneOf("ancestor"), index: int(0, MAX_ANCESTORS - 1) }),
@@ -195,7 +200,7 @@ const COMMANDS: Record<string, Check[]> = {
 
 const EVENTS: Record<string, Check[]> = {
   page: [obj({ v, type: oneOf("page"), url: str(MAX_URL), title: str(MAX_TITLE) })],
-  key: [obj({ v, type: oneOf("key"), key: oneOf("toggle", "escape") })],
+  key: [obj({ v, type: oneOf("key"), key: oneOf("toggle", "escape", "inspect", "flows", "changes") })],
   spec: [obj({ v, type: oneOf("spec"), pinned: bool, spec: nullable(RAW_SPEC) })],
 };
 

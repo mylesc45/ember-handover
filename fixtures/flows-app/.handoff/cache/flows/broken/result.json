@@ -1,0 +1,27 @@
+{
+  "flowId": "broken",
+  "state": null,
+  "status": "failing",
+  "failedAt": 1,
+  "steps": [
+    {
+      "index": 0,
+      "ok": true,
+      "description": "Go to /pricing",
+      "screenshot": "1.png",
+      "url": "http://localhost:53417/pricing",
+      "ms": 48
+    },
+    {
+      "index": 1,
+      "ok": false,
+      "description": "Click test ID \"does-not-exist\"",
+      "error": "Couldn't find test ID \"does-not-exist\" on the page.",
+      "screenshot": "2.png",
+      "url": "http://localhost:53417/pricing",
+      "ms": 2038
+    }
+  ],
+  "at": "2026-11-14T15:55:16.032Z",
+  "hash": "617d61e93abdb45e"
+}

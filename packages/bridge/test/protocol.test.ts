@@ -83,3 +83,12 @@ describe("inspect messages", () => {
     for (const spec of bad) expect(parseBridgeEvent({ v: 1, type: "spec", pinned: true, spec }), JSON.stringify(spec).slice(0, 80)).toBeNull();
   });
 });
+
+describe("navigate (Flows Live mode)", () => {
+  it("accepts same-origin paths", () => {
+    expect(parseOverlayCommand({ v: 1, type: "navigate", path: "/pricing?x=1#a" })).not.toBeNull();
+  });
+  it.each(["https://evil.example/", "//evil.example", "/\\evil.example", "javascript:alert(1)", "pricing", "/a b", ""])("rejects %j", (path) => {
+    expect(parseOverlayCommand({ v: 1, type: "navigate", path })).toBeNull();
+  });
+});
